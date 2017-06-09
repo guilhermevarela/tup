@@ -14,27 +14,23 @@ if __name__ == '__main__':
     pass
 
 nteams, distances, opponents = rd.instance_reader()
-
-
 S = schedule_builder(opponents)
-nrounds = S.shape[0]
+
+nrounds, numpires,_ = S.shape 
 U = umpires_builder(nrounds, nteams)
-U[0,:] = np.arange(int(nteams/2)) +1
+U[0,:] = np.arange(numpires) +1
 np.random.shuffle(U[0,:])
-t = 1
 
-Tt = travel_builder(distances, S, U, t, nteams)
-print "Travel distance"
-print Tt
+for t in xrange(1,nrounds):
+    Tt = travel_builder(distances, S, U, t, nteams)
+    print "Travel distances @ ", t 
+    print Tt
+    
+    solver = BipartiteMatchingSolver(Tt)
+    umpires, games, c  =  solver.solve()
+    U[t,:] = games 
 
-solver = BipartiteMatchingSolver(Tt)
-umpires, games, c  =  solver.solve()
-  
-
-Uy = S[0,:,:]
-
-
-print umpires
-print games
-print c 
+    print umpires
+    print games
+    print c 
  
