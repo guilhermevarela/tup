@@ -7,14 +7,28 @@ import numpy as np
 import pandas as pd
 import networkx as nx 
 import readers as rd  
-
+from solver import BipartiteMatchingSolver
+from datatranform import opponents_transform
 if __name__ == '__main__':
     pass
 
 n, dist, oppo = rd.instance_reader()
-D = nx.from_numpy_matrix(dist)
+
 print n
 print dist 
 print oppo
-print D.number_of_nodes() 
+
+# D =[[0, 1, 1, 0, 0, 0],
+#     [1, 0, 0, 1, 0, 0],
+#     [0, 0, 1, 0, 0, 0],
+#     [0, 0, 1, 1, 0, 0],
+#     [0, 0, 0, 0, 0, 0],
+#     [0, 0, 0, 0, 0, 1]]
+#    
+# s = BipartiteMatchingSolver(D)
+# print ("Maximum number of applicants that can get job is %d " % s.maxBPM()) 
+#  
+S = opponents_transform(oppo)
+print S
+ 
 
