@@ -5,14 +5,20 @@ Created on Jun 8, 2017
 '''
 import numpy as np 
 
-def bipartite_builder(nteams, D, Ut, Ht, Vt):
-# Builds a bipartite graph connecting Umpires (Ut) to Gt (Ht,Vt)
-# Ht home venue, Vt visitant
+def travel_builder(D, S, U, t, nteams):
+    # Builds a matrix for maximum flow algorithm     
+#     origin      = U[:,0,-1]-1 # From last UMPIRE LOCATIONS
+    nmatches = int(nteams/2)
+    origin      = U[:,0]      # From last UMPIRE LOCATIONS
+    destination = S[t,:, 0]   # From next GAME LOCATIONS
+    # from teams to index mappping 
+    origin -=1
+    destination -=1
+    #index with all combinations
+    R = np.tile(origin.reshape(nmatches,1),(1,nmatches))
+    C = np.tile(destination.reshape(1,nmatches),(nmatches,1)) 
+         
+    Tt = D[R, C].T   
+    return Tt  
 
-    if not Ut:
-        Ut = np.random.permutation(int(nteams/2))
-    
-    u = Ut -1
-    s = St -1 
-                 
-    return 
+             
