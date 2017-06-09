@@ -45,4 +45,41 @@ def schedule_builder(opponents):
 
 def umpires_builder(nrounds,nteams):
     return np.zeros((nrounds, int(nteams/2)), dtype=np.int32)
+
+def constraint_violation_builder(D, S, U, t, d1, d2):
+    # Builds and indicator function flaging where violations ocurr     
+    #1) Every game gets an umpire. (bounds condition)
+    #2) Every umpire works exactly one game per slot. (bounds condition)
+    #3) Every umpire sees every team at least once at the team’s
+    #home.
+    #4) No umpire is in a home site more than once in any numpires􏰀-d1
+    #consecutive slots. 
+    #5) No umpire sees a team more than once in any int(numpires/2) - d2 consecutive slots.
+    
+    numpires = U.shape[0]
+    # C4, C5 indicator
+    C = np.zeros((numpires,numpires),dtype=bool)    
+    if t == 0:
+        C = np.zeros((numpires,numpires),dtype=bool)
+    else:
+        # C4 No umpire is in a home site more than once in any numpires􏰀-d1
+        #consecutive slots.
+            y   =  max(t-(numpires-d1),0)  
+            U4  = U[y:t,:]       # umpire game history
+            S4  = S[y:t,:,0]     # last game venues
+            L4  = S4[U4]         # last locations
+            IL4 = L4 - 1         # locations positions
+            C4  = D[IL4]
+                            
+        #C5 No umpire sees a team more than once in any int(numpires/2) - d2 
+        #consecutive slots.
+            y    =  max(t-int(numpires/2),0)  
+            U5   = U[y:t,:]       # umpire game history
+            SH5  = S[y:t,:,0]     # last game home team
+            SV5  = S[y:t,:,1]     # last game visit team
+            
+    return C     
+            
+            
+         
     
