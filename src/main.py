@@ -7,43 +7,34 @@ import numpy as np
 import readers as rd  
  
 from solver         import BipartiteMatchingSolver
-from datatransform  import opponents_transform
-from builders       import travel_builder
+from builders       import travel_builder, schedule_builder, umpires_builder
 
 
 if __name__ == '__main__':
     pass
 
-n, dist, oppo = rd.instance_reader()
+nteams, distances, opponents = rd.instance_reader()
 
-# print n
-# print dist 
-# print oppo
 
-# D =[[0, 1, 1, 0, 0, 0],
-#     [1, 0, 0, 1, 0, 0],
-#     [0, 0, 1, 0, 0, 0],
-#     [0, 0, 1, 1, 0, 0],
-#     [0, 0, 0, 0, 0, 0],
-#     [0, 0, 0, 0, 0, 1]]
-#    
-# s = BipartiteMatchingSolver(D)
-# print ("Maximum number of applicants that can get job is %d " % s.maxBPM()) 
-#  
-S = opponents_transform(oppo)
-Uy = S[0,:,:]
-Tt = travel_builder(dist, S, Uy, 1, n)
+S = schedule_builder(opponents)
+nrounds = S.shape[0]
+U = umpires_builder(nrounds, nteams)
+U[0,:] = np.arange(int(nteams/2)) +1
+np.random.shuffle(U[0,:])
+t = 1
+
+Tt = travel_builder(distances, S, U, t, nteams)
 print "Travel distance"
 print Tt
 
-# uindex, gindex = opt.linear_sum_assignment(Tt)
-
-# print Tt[uindex,gindex].sum() 
 solver = BipartiteMatchingSolver(Tt)
 umpires, games, c  =  solver.solve()
+  
+
+Uy = S[0,:,:]
+
 
 print umpires
 print games
 print c 
-# print ("Maximum number of applicants that can get job is %d " % s.solve())
  
