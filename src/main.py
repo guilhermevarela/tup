@@ -23,8 +23,8 @@ U[0,:] = np.arange(numpires) +1
 np.random.shuffle(U[0,:])
 
 for t in xrange(1,nrounds):
-    Ct = constraint_violation_builder(D, S, U, t, 0, 0)
-    Tt = travel_builder(D, S, U, t, nteams)
+    Ct = constraint_violationmask_builder(D, S, U, t, 0, 0)
+    Tt = travel_builder(D, S, U, t)
     print "Travel distances @ ", t 
     print Tt
     
@@ -35,4 +35,4 @@ for t in xrange(1,nrounds):
     print umpires
     print games
     print c 
- 
+    print Ct

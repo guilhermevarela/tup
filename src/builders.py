@@ -5,18 +5,15 @@ Created on Jun 8, 2017
 '''
 import numpy as np 
 
-def travel_builder(D, S, U, t, nteams):
+def travel_builder(D, S, U, t):
     # Builds a matrix for maximum flow algorithm     
-#     origin      = U[:,0,-1]-1 # From last UMPIRE LOCATIONS
-    nmatches = int(nteams/2)
+    nmatches    = S.shape[1] 
     origin      = U[t-1,:]   # From last UMPIRE LOCATIONS
     destination = S[t,:, 0]   # From next GAME LOCATIONS
-    # from teams to index mappping 
-    origin -=1
-    destination -=1
+    
     #index with all combinations
-    R = np.tile(origin.reshape(nmatches,1),(1,nmatches))
-    C = np.tile(destination.reshape(1,nmatches),(nmatches,1)) 
+    R = np.tile((origin-1).reshape(nmatches,1),(1,nmatches))
+    C = np.tile((destination-1).reshape(1,nmatches),(nmatches,1)) 
          
     Tt = D[R, C].T   
     return Tt
@@ -46,28 +43,22 @@ def schedule_builder(opponents):
 def umpires_builder(nrounds,nteams):
     return np.zeros((nrounds, int(nteams/2)), dtype=np.int32)
 
-def constraint_violation_builder(D, S, U, t, d1, d2):
+def constraint_violationmask_builder(D, S, U, t, d1, d2):
     # Produces a Cmask[numpires, ntemns]
     numpires = S.shape[1]
     # C4, C5 indicator
-    Cmask     = np.zeros((numpires,2*numpires),dtype=bool)
+    Cmask     = np.zeros((numpires,2*numpires),dtype=np.int32)
     idumpires = np.arange(numpires).reshape(1,numpires)
     
     if t > 0:                
         y   =  max(t-(numpires-d1),0)  
-        U4  = U[y:t,:]       # umpire game history
-        S4  = S[y:t,:,0]     # last game venue
-        L4  = S4[:,U4[0,:]-1]       # 
-        colsindex4 = L4 - 1         # locations positions
-#         C4  = D[IL4]
+        U4  = U[y:t,:]                                  # umpire game history
+        S4  = S[y:t,:,0].reshape((t-y,numpires))       # last game venue
+        L4  = S4[:,U4[0,:]-1]        
+        colsindex4 = L4 - 1                             # locations positions
         rowsindex4 = np.tile(idumpires,(t-y,1))    
-        Cmask[rowsindex4,colsindex4] = True
+        Cmask[rowsindex4,colsindex4] = 1
                              
-        
-#         y    =  max(t-int(numpires/2),0)  
-#         U5   = U[y:t,:]       # umpire game history
-#         SH5  = S[y:t,:,0]     # last game home team
-#         SV5  = S[y:t,:,1]     # last game visit team
             
     return Cmask     
             
