@@ -3,7 +3,8 @@ Created on Jun 8, 2017
 
 @author: Varela
 '''
-import numpy as np 
+import numpy as np
+import pandas as pd  
 import readers as rd  
  
 # from solvers         import * 
@@ -22,6 +23,8 @@ d2 = 0
 replaceperc=0.15
 npopulation = 500
 population = ga_initialpopulation(npopulation, D, S, d1, d2)
+df = population[0].to_frame(D,S)
+df.to_csv('initial_population-8.csv', sep=',')
 t = 0
 nfit = 30
 fitalpha  = 0.5
@@ -31,7 +34,11 @@ stop_criteria = False
 fitmv = tol*1000 
 while not stop_criteria:
     population = ga_crossover(D, S, d1, d2, population, replaceperc)
-
+ 
     fitscore = ga_fitness(population, nfit)
-    stop_criteria = t > tmax & (abs(fitscore - fitmv) < tol) 
-    fitmv = (fitalpha)*fitscore + fitalpha*fitmv 
+    stop_criteria = (t > tmax) | (abs(fitscore - fitmv) < tol) 
+    fitmv = (fitalpha)*fitscore + (1-fitalpha)*fitmv
+    t +=1 
+
+df = population[0].to_frame(D,S)
+df.to_csv('ga_best-8.csv', sep=',')     

@@ -3,7 +3,10 @@ Created on Jun 12, 2017
 
 @author: Varela
 '''
-import numpy as np 
+
+import numpy as np
+import pandas as pd  
+ 
 from solvers import ProbabilisticGreedyMatchingSolver, BipartiteMatchingSolver
 from builders import travel_builder
 class TUPSolution(object):
@@ -36,7 +39,7 @@ class TUPSolution(object):
             Tt  = travel_builder(D,S,U,t1)
             solver = BipartiteMatchingSolver(Tt)
             UI, GI, ct = solver.solve()
-            U[t1,UI] = GI
+            U[t1,UI] = (GI+1)
             c[t1] = ct 
 
         self.cost = c 
@@ -44,8 +47,31 @@ class TUPSolution(object):
         self.score = np.sum(c)
         return self
 
-    def to_frame(self):
+    def to_frame(self, D, S):
         '''
             to_frame generates a pandas dataframe
+            
         '''
-        raise NotImplementedError('to_frame not implemented yet')
+        nrounds, numpires, _ = S.shape
+        c                    = np.cumsum( self.cost )
+        umpirecolumns      = ['Umpire #%d'%(x+1) for x in xrange(numpires)]
+        costscolumns       = ['D']
+        index              =xrange(nrounds)
+        
+        colindex = (self.solution-1)
+        rowindex = np.arange(numpires).reshape(1,numpires)
+        rowindex = np.tile(rowindex, (nrounds,1))
+        Uout    = np.empty((nrounds,numpires), dtype=object)
+        cout    = np.empty((nrounds,1), dtype=object)
+         
+        listoflists     = S[rowindex, colindex,:].tolist()
+        for r, roundlist in enumerate(listoflists):
+            cout[r] = "{:,}".format(c[r]) 
+            for t, tuplelist in enumerate(roundlist):
+                Uout[r,t]  =  '(%02d,%02d)' % tuple(tuplelist)
+                 
+        columns = umpirecolumns + costscolumns
+        outdata = np.concatenate((Uout, cout),axis=1)
+        return pd.DataFrame(data=outdata, columns=columns, index=index)
+        
+        
