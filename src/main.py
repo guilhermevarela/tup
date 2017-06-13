@@ -10,24 +10,28 @@ import readers as rd
 # from builders       import schedule_builder, umpire_builder
 from builders       import schedule_builder
 from solution import TUPSolution
-from ga import ga_initialpopulation
+from ga import *
 if __name__ == '__main__':
     pass
 
 nteams, D, opponents = rd.instance_reader()
 S = schedule_builder(opponents)
 
-# sol =  TUPSolution(D,S,0,0)
-# print sol.cost
-# print sol.violations
-# print sol.solution
-
+d1 = 0 
+d2 = 0 
+replaceperc=0.15
 npopulation = 500
-population = ga_initialpopulation(npopulation, D, S, 0, 0)
-temppopulation = []
+population = ga_initialpopulation(npopulation, D, S, d1, d2)
 t = 0
-keep_searching  = True  
-while keep_searching:
-    
-     
+nfit = 30
+fitalpha  = 0.5
+tol = 3e-2
+tmax = 5e2
+stop_criteria = False
+fitmv = tol*1000 
+while not stop_criteria:
+    population = ga_crossover(D, S, d1, d2, population, replaceperc)
 
+    fitscore = ga_fitness(population, nfit)
+    stop_criteria = t > tmax & (abs(fitscore - fitmv) < tol) 
+    fitmv = (fitalpha)*fitscore + fitalpha*fitmv 

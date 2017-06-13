@@ -10,18 +10,53 @@ def ga_initialpopulation(npopulation, D, S, d1, d2):
     for _ in xrange(npopulation):
         sol = TUPSolution(D,S,d1,d2)
         population.append(sol) 
+    
+    population = ga_rank(population)
     return  population     
 
-def ga_crossover(population, replaceperc=0.15, D, S, d1, d2):
-    ncrossover = int(population/2)
+def ga_crossover(D, S, d1, d2, population, replaceperc=0.15):
+    ncrossover = int(len(population)/2)
+    nreplace   = int(len(population) * replaceperc)
     
     nrounds, numpires, _  = S.shape  
-    temp_population = []
+    newgeneration = []
     
-    parents = np.random.choice(population,size=2,replace=False)
-    p1 = parents[0]
-    p2 = parents[1] 
+    while len(newgeneration) < ncrossover:
+        parents = np.random.choice(population,size=2,replace=False)
+        solx    = parents[0]
+        solcopy = parents[1] 
+            
+        solx.x(solcopy, D, S, d1, d2)
+
+        exists =  ga_exists(newgeneration,solx) | ga_exists(population,solx) 
+        if not exists:
+            newgeneration.append(solx)
     
-    solx      = population[p1]
-    solc      = population[p2]
-    solx.x(solc, D, S, d1, d2):
+    #replace the best 
+    newgeneration   = ga_rank(newgeneration)    
+    replacestart = len(population)-nreplace
+    keepfinish   = nreplace
+    population[replacestart:] = newgeneration[0:keepfinish]
+    population = ga_rank(population)
+
+    return population
+
+def ga_rank(population):
+    '''
+        Performs descending fitness order
+    '''
+    population.sort(key=lambda x : x.score)    
+    return population
+
+def ga_exists(population, solution):     
+    duplicates = filter(lambda x : x.score == solution.score, population)
+    result = False 
+    if not(duplicates is None):         
+        for d in duplicates:
+            if (d.solution == solution.solution).all():
+                result = False 
+                break 
+    return result            
+
+def ga_fitness(population, nbest): 
+    return np.array(map(lambda x : x.score, population[:nbest])).mean()
