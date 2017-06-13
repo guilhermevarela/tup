@@ -73,9 +73,9 @@ class StableMatchingSolver:
         # last proposition
         Pu = np.zeros((numpires, ),dtype=np.int32)             
         while (umpirefree.any() | gamefree.any()):
-            freeumpires =  indexumpires[umpirefree]
+            unmatchedumpires =  indexumpires[umpirefree]
                                     
-            for u in freeumpires:
+            for u in unmatchedumpires:
                 g = umpirepref[u,Pu[u]]
                 if gamefree[g]: 
                     indexgames[g] = u
@@ -89,7 +89,8 @@ class StableMatchingSolver:
                     prefprevu = np.where( gamepref[:,g] ==prevu )[0][0] 
                     if prefu  < prefprevu:
                         indexgames[g] = u
-                        freeumpires[prevu] = True 
+                        umpirefree[u] = False
+                        umpirefree[prevu] = True 
                         Pu[prevu] +=1
                     else:                          
                         Pu[u] +=1    
