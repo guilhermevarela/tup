@@ -6,9 +6,10 @@ Created on Jun 8, 2017
 import numpy as np 
 import readers as rd  
  
-from solver         import BipartiteMatchingSolver
-from builders       import *
-
+# from solvers         import * 
+# from builders       import schedule_builder, umpire_builder
+from builders       import schedule_builder
+from solution import TUPSolution
 
 if __name__ == '__main__':
     pass
@@ -16,23 +17,30 @@ if __name__ == '__main__':
 nteams, D, opponents = rd.instance_reader()
 S = schedule_builder(opponents)
 
+sol =  TUPSolution(D,S,0,0)
+print sol.cost
+print sol.violations
+print sol.solution
 
-nrounds, numpires,_ = S.shape 
-U = umpires_builder(nrounds, nteams)
-U[0,:] = np.arange(numpires) +1
-np.random.shuffle(U[0,:])
+# nrounds, numpires,_ = S.shape 
+# U = umpires_builder(nrounds, nteams)
+# U[0,:] = np.arange(numpires) +1
+# np.random.shuffle(U[0,:])
 
-for t in xrange(1,nrounds):
-    Ct = constraint_violationmask_builder(D, S, U, t, 0, 0)
-    Tt = travel_builder(D, S, U, t)
-    print "Travel distances @ ", t 
-    print Tt
-    
-    solver = BipartiteMatchingSolver(Tt)
-    umpires, games, c  =  solver.solve()
-    U[t,:] = games +1
+# pgm = ProbabilisticGreedyMatching(D, S, 0, 0)
+# pgm.solve()
 
-    print umpires
-    print games
-    print c 
-    print Ct
+# for t in xrange(1,nrounds):
+#     Ct = constraint_violationmask_builder(D, S, U, t, 0, 0)
+#     Tt = travel_builder(D, S, U, t)
+#     print "Travel distances @ ", t 
+#     print Tt
+#     
+#     solvers = BipartiteMatchingSolver(Tt)
+#     umpires, games, c  =  solvers.solve()
+#     U[t,:] = games +1
+# 
+#     print umpires
+#     print games
+#     print c 
+#     print Ct
