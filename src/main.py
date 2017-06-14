@@ -24,7 +24,7 @@ replaceperc=0.15
 npopulation = 500
 population = ga_initialpopulation(npopulation, D, S, d1, d2)
 df = population[0].to_frame(D,S)
-df.to_csv('initial_population-8.csv', sep=',')
+df.to_csv('ga_population0000-8.csv', sep=',')
 t = 0
 nfit = 30
 fitalpha  = 0.5
@@ -41,4 +41,5 @@ while not stop_criteria:
     t +=1 
 
 df = population[0].to_frame(D,S)
-df.to_csv('ga_best-8.csv', sep=',')     
+fname =  'ga_population%04d-8.csv' % (t)  
+df.to_csv(fname, sep=',')     
