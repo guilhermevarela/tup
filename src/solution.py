@@ -58,14 +58,14 @@ class TUPSolution(object):
         costscolumns       = ['D']
         index              =xrange(nrounds)
         
-        colindex = (self.solution-1)
-        rowindex = np.arange(numpires).reshape(1,numpires)
-        rowindex = np.tile(rowindex, (nrounds,1))
+        permutationindex = (self.solution-1)        
         Uout    = np.empty((nrounds,numpires), dtype=object)
         cout    = np.empty((nrounds,1), dtype=object)
          
-        listoflists     = S[rowindex, colindex,:].tolist()
-        for r, roundlist in enumerate(listoflists):
+#         listoflists     = S[rowindex, colindex,:].tolist()
+        for r  in xrange(nrounds):
+            p = permutationindex[r] 
+            roundlist = S[r][p]
             cout[r] = "{:,}".format(c[r]) 
             for t, tuplelist in enumerate(roundlist):
                 Uout[r,t]  =  '(%02d,%02d)' % tuple(tuplelist)
