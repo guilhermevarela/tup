@@ -62,6 +62,31 @@ def constraint_violationmask_builder(D, S, U, t, d1, d2):
             
     return Cmask     
             
-            
+def constraint_4_builder(D, S, U, t, d1):
+    # C4[numpires, ngames] where 0 doesn't have a penalty  
+    numpires = S.shape[1]
+    nmatches = numpires    
+    nvenues  = 2*numpires 
+    Cmask     = np.zeros((numpires,nvenues),dtype=np.int32)
+    idumpires = np.arange(numpires).reshape(1,numpires)
+    C4        = np.zeros((numpires,nmatches),dtype=np.int32)
+    
+    if t > 0:                
+        y           = max(t-(numpires-d1),0)  
+        UI          = np.array( U[y:t,:]-1 )                                  
+        HV          = S[y:t,:,0].reshape((t-y,numpires))        #ALL HOME VENUES
+        L           = HV[:,UI[0,:]]                             #HOME VENUES SWAPPED PER EACH
+        C           = L - 1                                     #COLS INDEX 
+        R           = np.tile(idumpires,(t-y,1))    
+        
+        Cmask[R,C] = 1
+        
+        HVt = S[t,:,0].reshape((numpires,))
+        VIt  = (HVt-1)
+        C4[:,S[t,:,0]] = Cmask[VIt,:] 
+        
+                                   
+    return C4     
+                
          
     

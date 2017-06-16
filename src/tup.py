@@ -9,7 +9,7 @@ import pandas as pd
  
 from solvers import ProbabilisticGreedyMatchingSolver, BipartiteMatchingSolver
 from builders import travel_builder
-class TUPSolution(object):
+class TUP(object):
     '''
     TUP solution stores d1, d2
     '''
@@ -20,7 +20,7 @@ class TUPSolution(object):
         nrounds             = S.shape[0]
         self.cost           = cost 
         self.score          = np.sum(cost)
-        self.solution       = solution 
+        self.U              = solution 
         self.violations     = violations 
         self.nrounds        = nrounds
         
@@ -30,10 +30,10 @@ class TUPSolution(object):
         
         #Settings before optimization        
         self.cost[t+1:]         = other_tupsolution.cost[t+1:] 
-        self.solution[t+1:,:]   = other_tupsolution.solution[t+1:,:]
+        self.U[t+1:,:]          = other_tupsolution.U[t+1:,:]
         self.violations[t+1:,:] = other_tupsolution.violations[t+1:,:]
         
-        U = self.solution
+        U = self.U
         c = self.cost 
         for t1 in xrange(t+1,nrounds):
             Tt  = travel_builder(D,S,U,t1)
@@ -43,7 +43,7 @@ class TUPSolution(object):
             c[t1] = ct 
 
         self.cost = c 
-        self.solution = U 
+        self.U = U 
         self.score = np.sum(c)
         return self
 
@@ -58,11 +58,10 @@ class TUPSolution(object):
         costscolumns       = ['D']
         index              =xrange(nrounds)
         
-        permutationindex = (self.solution-1)        
+        permutationindex = (self.U-1)        
         Uout    = np.empty((nrounds,numpires), dtype=object)
         cout    = np.empty((nrounds,1), dtype=object)
          
-#         listoflists     = S[rowindex, colindex,:].tolist()
         for r  in xrange(nrounds):
             p = permutationindex[r] 
             roundlist = S[r][p]

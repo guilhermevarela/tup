@@ -3,12 +3,12 @@ Created on Jun 9, 2017
 
 @author: Varela
 '''
-from solution import TUPSolution
+from tup import TUP
 import numpy as np
 def ga_initialpopulation(npopulation, D, S, d1, d2):
     population = []
     for _ in xrange(npopulation):
-        sol = TUPSolution(D,S,d1,d2)
+        sol = TUP(D,S,d1,d2)
         population.append(sol) 
     
     population = ga_rank(population)
@@ -17,8 +17,7 @@ def ga_initialpopulation(npopulation, D, S, d1, d2):
 def ga_crossover(D, S, d1, d2, population, replaceperc=0.15):
     ncrossover = int(len(population)/2)
     nreplace   = int(len(population) * replaceperc)
-    
-    nrounds, numpires, _  = S.shape  
+          
     newgeneration = []
     
     while len(newgeneration) < ncrossover:
