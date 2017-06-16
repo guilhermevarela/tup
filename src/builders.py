@@ -69,7 +69,7 @@ def constraint_4_builder(D, S, U, t, d1):
     nvenues  = 2*numpires 
     Cmask     = np.zeros((numpires,nvenues),dtype=np.int32)
     idumpires = np.arange(numpires).reshape(1,numpires)
-    C4        = np.zeros((numpires,nmatches),dtype=np.int32)
+    
     
     if t > 0:                
         y           = max(t-(numpires-d1),0)  
@@ -83,10 +83,10 @@ def constraint_4_builder(D, S, U, t, d1):
         
         HVt = S[t,:,0].reshape((numpires,))
         VIt  = (HVt-1)
-        C4[:,S[t,:,0]] = Cmask[VIt,:] 
+        C4t = Cmask[:,VIt] 
         
                                    
-    return C4     
+    return C4t     
                 
          
     

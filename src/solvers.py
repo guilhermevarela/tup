@@ -34,11 +34,12 @@ class ProbabilisticGreedyMatchingSolver:
         
         for t in xrange(1,nrounds):
 
-#             Ct = constraint_4_builder(D, S, U, t, d1)
+            Ct = constraint_4_builder(D, S, U, t, d1)
             Tt = travel_builder(D, S, U, t)
             
             # Greedy Heuristic -> Take the shortest distance possible, using stable marriage
-            uindex, gindex = StableMatchingSolver(Tt).solve()
+            #uindex, gindex = StableMatchingSolver(Tt).solve()
+            uindex, gindex = StableMatchingSolverR(Tt, Ct).solve()
             
             U[t, uindex] = (gindex+1)
             c[t] = Tt[uindex, gindex].sum()
@@ -106,11 +107,34 @@ class StableMatchingSolverR:
         self.UP =  np.argsort(C, axis=1)
         self.GP =  np.argsort(C, axis=0)
         self.R  = R
-        
+    
+    def prefersu2v(self, P, u, v):    
+        '''
+            Compares canditates u,v using preference array P - of canditates, lower the index
+            greater the preference
+            
+            returns u if u=argmax(P | u,v) esle v=argmax(P | u,v)
+        '''
+        prefu     = np.where( P ==u )[0][0]
+        prefv     = np.where( P ==v )[0][0]
+        return prefu if prefu < prefv else prefv
+    
+    def prefers(self, P, u):    
+        '''
+            Compares array of canditates u using preference array P - of canditates, lower the index
+            greater the preference
+            
+            returns argmax(P | u) 
+        '''
+        l = len(P)
+        S = np.array(xrange(l,0,-1))
+        i = np.argmax(S[P[u]])        
+        return u[i]
+                  
     def solve(self):
         UP  =self.UP
         GP  =self.GP
-        
+        R   =self.R
         
         numpires, ngames = UP.shape
         umpirefree = np.ones((numpires,), dtype=bool)
@@ -125,25 +149,44 @@ class StableMatchingSolverR:
             unmatchedumpires =  indexumpires[umpirefree]
                                     
             for u in unmatchedumpires:
-                g = UP[u,engagement[u]]
-                if gamefree[g]: 
-                    indexgames[g] = u
-                    
-                    gamefree[g]   = False 
-                    umpirefree[u] = False 
-                else: 
-                    prevu =indexgames[g]
-                    # least index greater the preference
-                    prefu     = np.where( GP[:,g] ==u )[0][0]
-                    prefprevu = np.where( GP[:,g] ==prevu )[0][0] 
-                    if prefu  < prefprevu:
+                if engagement[u] < ngames: 
+                    g = UP[u,engagement[u]]
+                    forbidden =  bool(R[u,engagement[u]])                
+                    if forbidden >0:
+                        engagement[u] +=1
+                    elif gamefree[g]: 
                         indexgames[g] = u
-                        umpirefree[u] = False
-                        umpirefree[prevu] = True 
-                        engagement[prevu] +=1
-                    else:                          
-                        engagement[u] +=1    
-                              
+                    
+                        gamefree[g]   = False 
+                        umpirefree[u] = False 
+                    else: 
+                        prevu =indexgames[g]
+                        # least index greater the preference
+#                         prefu     = np.where( GP[:,g] ==u )[0][0]
+#                         prefprevu = np.where( GP[:,g] ==prevu )[0][0]
+                        pref =  self.prefersu2v(GP[:,g], u, prevu) 
+                        if u == pref:
+                            indexgames[g] = u
+                            umpirefree[u] = False
+                            umpirefree[prevu] = True 
+                            engagement[prevu] +=1
+                        else:                          
+                            engagement[u] +=1
+                else: 
+                    # from all free games returns the index of the favorite                    
+                    bestscore=ngames 
+                    bestg    = -1
+                    for g in xrange(ngames):
+                        if gamefree[g]: 
+                            score = np.where(GP[:, g] == u)[0][0]
+                            if score<bestscore:
+                                bestscore=score
+                                bestg=g 
+                                 
+                    indexgames[bestg] = u
+    
+                    gamefree[bestg]   = False 
+                    umpirefree[u] = False
         return indexumpires, indexgames                
      
 #Implementation of the hungarian method         
