@@ -12,8 +12,7 @@ from builders import constraint_4_builder, travel_builder
 class ProbabilisticGreedyMatchingSolver:    
     def __init__(self, D, S, d1, d2):
         self.D = D 
-        self.S = S
-        self.C = C 
+        self.S = S 
         self.d1 =d1 
         self.d2 =d2 
         
@@ -22,7 +21,6 @@ class ProbabilisticGreedyMatchingSolver:
         D = self.D  
         S = self.S          
         d1 = self.d1
-#         d2 = self.d2
                  
         
         # initialize umpires and violations
@@ -101,18 +99,13 @@ class StableMatchingSolver:
 
 class StableMatchingSolverR:
     '''
-        StableMatchingSolver with restrictions some allocations may not exist
-        
+        StableMatchingSolver with restrictions - some pairings are forbidden  
     '''
-'''
-        Conventional StableMatchingSolver input is a cost matrix - both umpires and games prefer the 
-        minimum cost.
-    '''
-    def __init__(self, C):
-        self.C = C
+    def __init__(self, C, R):
+        self.C  =  C
         self.UP =  np.argsort(C, axis=1)
         self.GP =  np.argsort(C, axis=0)
-                 
+        self.R  = R
         
     def solve(self):
         UP  =self.UP

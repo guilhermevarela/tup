@@ -6,7 +6,8 @@ Created on Jun 8, 2017
 import numpy as np
 import pandas as pd  
 import readers as rd  
- 
+import os
+import timeit
 # from solvers         import * 
 # from builders       import schedule_builder, umpire_builder
 from builders       import schedule_builder
@@ -15,16 +16,24 @@ from ga import *
 if __name__ == '__main__':
     pass
 
+
 nteams, D, opponents = rd.instance_reader()
 S = schedule_builder(opponents)
 
+timestamp = int(timeit.time.time())
+
+output_dir = "../ouput/%d/" %(timestamp)
+if not os.path.exists(output_dir):
+    os.makedirs(output_dir)
+  
 d1 = 0 
 d2 = 0 
 replaceperc  = 0.15
 npopulation = 500
 population  = ga_initialpopulation(npopulation, D, S, d1, d2)
 df          = population[0].to_frame(D,S)
-df.to_csv('ga_population0000-8.csv', sep=',')
+filepath    = output_dir + 'ga_population0000-8.csv'  
+df.to_csv(filepath, sep=',')
 
 t = 0
 nfit = 30
@@ -42,5 +51,7 @@ while not stop_criteria:
     t +=1 
 
 df = population[0].to_frame(D,S)
-fname =  'ga_population%04d-8.csv' % (t)  
-df.to_csv(fname, sep=',')     
+
+fname =  'ga_population%04d-8.csv' % (t)
+filepath    = output_dir + fname  
+df.to_csv(filepath, sep=',')     

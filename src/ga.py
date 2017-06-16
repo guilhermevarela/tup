@@ -52,7 +52,7 @@ def ga_exists(population, solution):
     result = False 
     if not(duplicates is None):         
         for d in duplicates:
-            if (d.solution == solution.solution).all():
+            if (d.U == solution.U).all():
                 result = False 
                 break 
     return result            
