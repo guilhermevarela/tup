@@ -121,15 +121,21 @@ class StableMatchingSolverR:
     
     def prefers(self, P, u):    
         '''
-            Compares array of canditates u using preference array P - of canditates, lower the index
+            Compares array of candidates u using preference array P - of candidates, lower the index
             greater the preference
             
             returns argmax(P | u) 
         '''
-        l = len(P)
-        S = np.array(xrange(l,0,-1))
-        i = np.argmax(S[P[u]])        
-        return u[i]
+        ngames            =len(P)
+        bestscore         =ngames 
+        bestcandidate     = -1
+        for c in u:             
+                score = np.where(P == c)[0][0]
+                if score<bestscore:
+                    bestscore=score
+                    bestcandidate=c 
+                                
+        return bestcandidate
                   
     def solve(self):
         UP  =self.UP
@@ -152,19 +158,19 @@ class StableMatchingSolverR:
                 if engagement[u] < ngames: 
                     g = UP[u,engagement[u]]
                     forbidden =  bool(R[u,engagement[u]])                
-                    if forbidden >0:
+                    if forbidden:
                         engagement[u] +=1
                     elif gamefree[g]: 
                         indexgames[g] = u
                     
                         gamefree[g]   = False 
                         umpirefree[u] = False 
-                    else: 
+                    else:
+                        # Control for forbidden pairs 
                         prevu =indexgames[g]
-                        # least index greater the preference
-#                         prefu     = np.where( GP[:,g] ==u )[0][0]
-#                         prefprevu = np.where( GP[:,g] ==prevu )[0][0]
-                        pref =  self.prefersu2v(GP[:,g], u, prevu) 
+                        
+                        pref =  self.prefersu2v(GP[:,g], u, prevu)
+                         
                         if u == pref:
                             indexgames[g] = u
                             umpirefree[u] = False
@@ -173,20 +179,32 @@ class StableMatchingSolverR:
                         else:                          
                             engagement[u] +=1
                 else: 
-                    # from all free games returns the index of the favorite                    
-                    bestscore=ngames 
-                    bestg    = -1
-                    for g in xrange(ngames):
-                        if gamefree[g]: 
-                            score = np.where(GP[:, g] == u)[0][0]
-                            if score<bestscore:
-                                bestscore=score
-                                bestg=g 
-                                 
-                    indexgames[bestg] = u
-    
-                    gamefree[bestg]   = False 
-                    umpirefree[u] = False
+                    # Is there any non forbbiden solution
+                    if (~R[u,gamefree].astype('bool')).any():
+                        P  = UP[u, :].reshape((numpires,))
+                        
+                        index = np.where(gamefree)[0]
+                        g = self.prefers(P, index) 
+                        indexgames[g] = u    
+                        gamefree[g]   = False 
+                        umpirefree[u] = False
+                    else: 
+                        # break an "engagement" and update restriction
+                        P  = UP[u, :].reshape((numpires,))
+                        forbidden = R[u,:].astype('bool')
+                        index = np.where(~gamefree & ~forbidden)[0]
+                        g = self.prefers(P, index)     
+                        prevu = indexgames[g] 
+                                                
+                        umpirefree[prevu] = True
+                        engagement[prevu] =0
+                         
+                        umpirefree[u]     = False 
+                        indexgames[g]     = u 
+                        
+                        R[prevu, g]       = 1 # preventing from marriying again
+                        
+                                        
         return indexumpires, indexgames                
      
 #Implementation of the hungarian method         
