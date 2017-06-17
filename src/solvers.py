@@ -14,7 +14,7 @@ sys.path.insert(0, '../src/joyrexus')
 from match import Matcher
 from builders import constraint_4_builder, travel_builder
 
-class ProbabilisticGreedyMatchingSolver:    
+class RandomGreedyMatchingSolver:    
     def __init__(self, D, S, d1, d2):
         self.D = D 
         self.S = S 
@@ -44,7 +44,8 @@ class ProbabilisticGreedyMatchingSolver:
             
             # Greedy Heuristic -> Take the shortest distance possible, using stable marriage
             #uindex, gindex = StableMatchingSolver(Tt).solve()
-            uindex, gindex = StableMatchingSolverR(Tt, Ct).solve()
+#             uindex, gindex = StableMatchingSolverF(Tt, Ct).solve()
+            uindex, gindex = RandomGreedyMatchingSolverF(Tt, Ct).solve()
             
             U[t, uindex] = (gindex+1)
             c[t] = Tt[uindex, gindex].sum()
@@ -103,36 +104,62 @@ class StableMatchingSolver:
                               
         return indexumpires, indexgames                
 
-class StableMatchingSolverR:
+class StableMatchingSolverF:
     '''
         StableMatchingSolver with restrictions - some pairings are forbidden  
     '''
-    def __init__(self, C, R):
+    def __init__(self, C, F):
         # Convert C,R to dictionary
-        UP =  np.argsort(C, axis=1)     # umpire preferences
-        GP =  np.argsort(C, axis=0)     # game preferences
-        
-         
-        R = np.matrix( R.astype('bool') )
-        u = dict(enumerate(UP))
-        u = {k: list(v) for k, v in u.items()}
-        g = dict(enumerate(GP.T))
-        g = {k: list(v) for k, v in g.items()}
-        # forbidden transformation
-        f = dict(
-            enumerate(
-                [ 
-                    list(ary) for ary in [np.where(row)[-1] for row in R]
-                ]
-            )
-        )        
+        u, g, f = ndarray_to_dict(C, F)        
         self.matcher = Matcher(u, g, f)
         
                   
     def solve(self):
         result  = self.matcher()
         return result                
-     
+
+class PariallyStableMatchingSolverF:
+    '''
+        Finds a viable solution generator for greedy matching solver    
+    '''    
+        
+    def __init__(self, C, R):
+        u, g, f = ndarray_to_dict(C, R)
+        self.u = u 
+        self.g = g 
+        self.f = f 
+        self.C = C 
+
+    # creates a zip with lengths         
+    def _zipped_conflict_umpires_(self):
+        umpires_nforbidden = {k:len(values) for k, values in self.f.items()}
+        conflicts = {} 
+        for u, nforbidden in umpires_nforbidden.items():
+            if conflicts.has_key(nforbidden):
+                conflicts[nforbidden] += u 
+            else:    
+                conflicts[nforbidden] = [u]
+        conflicts  = zip(conflicts.keys(), conflicts.values())
+                
+        return sorted(conflicts, key=lambda x: x[-1], reverse=True)         
+    def solve(self):
+        # Start picking from most restricted to less restricted - 
+        # if an umpire has any restrictions his choice is never revisited
+        f = self.f 
+        umpirepref = self.u
+        gamepref = self.g  
+        
+#         conflictumpires  =  self._zipped_conflict_umpires_()
+#         for nc, umpires  in conflictumpires.items(): 
+#             for iu in np.random.shuffle(umpires):
+#                 iforbidden = f[iu]                
+#                 if nc > 0:
+#                     # Greedly select non-forbidden preference
+#                     
+             
+          
+        
+        return 0     
 #Implementation of the hungarian method         
 class BipartiteMatchingSolver:
     def __init__(self, C):
@@ -146,4 +173,25 @@ class BipartiteMatchingSolver:
         Ia, Ij = opt.linear_sum_assignment(self.C)
         c = self.C[Ia,Ij].sum()
         return Ia, Ij, c
+
+def ndarray_to_dict(C, R):
+    UP =  np.argsort(C, axis=1)     # umpire preferences
+    GP =  np.argsort(C, axis=0)     # game preferences
         
+         
+    R = np.matrix( R.astype('bool') )
+    u = dict(enumerate(UP))
+    u = {k: list(v) for k, v in u.items()}
+    g = dict(enumerate(GP.T))
+    g = {k: list(v) for k, v in g.items()}
+    # forbidden transformation
+    f = dict(
+        enumerate(
+            [ 
+                list(ary) for ary in [np.where(row)[-1] for row in R]
+            ]
+        )
+    )
+            
+            
+    return u,g,f        

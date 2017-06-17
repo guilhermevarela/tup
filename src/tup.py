@@ -7,7 +7,7 @@ Created on Jun 12, 2017
 import numpy as np
 import pandas as pd  
  
-from solvers import ProbabilisticGreedyMatchingSolver, BipartiteMatchingSolver
+from solvers import RandomGreedyMatchingSolver, BipartiteMatchingSolver
 from builders import travel_builder
 class TUP(object):
     '''
@@ -16,7 +16,7 @@ class TUP(object):
 
 
     def __init__(self, D, S, d1, d2):                         
-        cost, solution, violations =  ProbabilisticGreedyMatchingSolver(D, S, d1, d2).solve()
+        cost, solution, violations =  RandomGreedyMatchingSolver(D, S, d1, d2).solve()
         nrounds             = S.shape[0]
         self.cost           = cost 
         self.score          = np.sum(cost)
