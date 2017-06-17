@@ -7,6 +7,11 @@ Created on Jun 8, 2017
 import numpy as np
 import scipy.optimize as opt
 
+import sys
+sys.path.insert(0, '../src/joyrexus')
+
+# from joyrexus.match import Matcher
+from match import Matcher
 from builders import constraint_4_builder, travel_builder
 
 class ProbabilisticGreedyMatchingSolver:    
@@ -103,109 +108,30 @@ class StableMatchingSolverR:
         StableMatchingSolver with restrictions - some pairings are forbidden  
     '''
     def __init__(self, C, R):
-        self.C  =  C
-        self.UP =  np.argsort(C, axis=1)
-        self.GP =  np.argsort(C, axis=0)
-        self.R  = R
-    
-    def prefersu2v(self, P, u, v):    
-        '''
-            Compares canditates u,v using preference array P - of canditates, lower the index
-            greater the preference
-            
-            returns u if u=argmax(P | u,v) esle v=argmax(P | u,v)
-        '''
-        prefu     = np.where( P ==u )[0][0]
-        prefv     = np.where( P ==v )[0][0]
-        return prefu if prefu < prefv else prefv
-    
-    def prefers(self, P, u):    
-        '''
-            Compares array of candidates u using preference array P - of candidates, lower the index
-            greater the preference
-            
-            returns argmax(P | u) 
-        '''
-        ngames            =len(P)
-        bestscore         =ngames 
-        bestcandidate     = -1
-        for c in u:             
-                score = np.where(P == c)[0][0]
-                if score<bestscore:
-                    bestscore=score
-                    bestcandidate=c 
-                                
-        return bestcandidate
+        # Convert C,R to dictionary
+        UP =  np.argsort(C, axis=1)     # umpire preferences
+        GP =  np.argsort(C, axis=0)     # game preferences
+        
+         
+        R = np.matrix( R.astype('bool') )
+        u = dict(enumerate(UP))
+        u = {k: list(v) for k, v in u.items()}
+        g = dict(enumerate(GP.T))
+        g = {k: list(v) for k, v in g.items()}
+        # forbidden transformation
+        f = dict(
+            enumerate(
+                [ 
+                    list(ary) for ary in [np.where(row)[-1] for row in R]
+                ]
+            )
+        )        
+        self.matcher = Matcher(u, g, f)
+        
                   
     def solve(self):
-        UP  =self.UP
-        GP  =self.GP
-        R   =self.R
-        
-        numpires, ngames = UP.shape
-        umpirefree = np.ones((numpires,), dtype=bool)
-        gamefree   = np.ones((ngames,)  , dtype=bool)
-            
-        indexumpires = np.arange(numpires, dtype=np.int32)
-        indexgames   = np.zeros((ngames,), dtype=np.int32) 
-            
-        # Saves the index of the last proposition - "engagement"
-        engagement = np.zeros((numpires, ),dtype=np.int32)             
-        while (umpirefree.any() | gamefree.any()):
-            unmatchedumpires =  indexumpires[umpirefree]
-                                    
-            for u in unmatchedumpires:
-                if engagement[u] < ngames: 
-                    g = UP[u,engagement[u]]
-                    forbidden =  bool(R[u,engagement[u]])                
-                    if forbidden:
-                        engagement[u] +=1
-                    elif gamefree[g]: 
-                        indexgames[g] = u
-                    
-                        gamefree[g]   = False 
-                        umpirefree[u] = False 
-                    else:
-                        # Control for forbidden pairs 
-                        prevu =indexgames[g]
-                        
-                        pref =  self.prefersu2v(GP[:,g], u, prevu)
-                         
-                        if u == pref:
-                            indexgames[g] = u
-                            umpirefree[u] = False
-                            umpirefree[prevu] = True 
-                            engagement[prevu] +=1
-                        else:                          
-                            engagement[u] +=1
-                else: 
-                    # Is there any non forbbiden solution
-                    if (~R[u,gamefree].astype('bool')).any():
-                        P  = UP[u, :].reshape((numpires,))
-                        
-                        index = np.where(gamefree)[0]
-                        g = self.prefers(P, index) 
-                        indexgames[g] = u    
-                        gamefree[g]   = False 
-                        umpirefree[u] = False
-                    else: 
-                        # break an "engagement" and update restriction
-                        P  = UP[u, :].reshape((numpires,))
-                        forbidden = R[u,:].astype('bool')
-                        index = np.where(~gamefree & ~forbidden)[0]
-                        g = self.prefers(P, index)     
-                        prevu = indexgames[g] 
-                                                
-                        umpirefree[prevu] = True
-                        engagement[prevu] =0
-                         
-                        umpirefree[u]     = False 
-                        indexgames[g]     = u 
-                        
-                        R[prevu, g]       = 1 # preventing from marriying again
-                        
-                                        
-        return indexumpires, indexgames                
+        result  = self.matcher()
+        return result                
      
 #Implementation of the hungarian method         
 class BipartiteMatchingSolver:
