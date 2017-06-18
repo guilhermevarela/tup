@@ -37,7 +37,9 @@ class RandomGreedyMatchingSolver:
         U[0,:] = np.arange(numpires) +1
         np.random.shuffle(U[0,:])
         
-        for t in xrange(1,nrounds):
+        t = 1
+        # for t in xrange(1,nrounds):
+        while t < nrounds: 
 
             Ct = constraint_4_builder(D, S, U, t, d1)
             Tt = travel_builder(D, S, U, t)
@@ -45,10 +47,13 @@ class RandomGreedyMatchingSolver:
             # Greedy Heuristic -> Take the shortest distance possible, using stable marriage
             #uindex, gindex = StableMatchingSolver(Tt).solve()
 #             uindex, gindex = StableMatchingSolverF(Tt, Ct).solve()
-            uindex, gindex = RandomWeightedMatchingSolverF(Tt, Ct).solve()
-            
-            U[t, uindex] = (gindex+1)
-            c[t] = Tt[uindex, gindex].sum()
+            uindex, gindex, status = RandomWeightedMatchingSolverF(Tt, Ct, 100).solve()
+            if status == 1: 
+                U[t, uindex] = (gindex+1)
+                c[t] = Tt[uindex, gindex].sum()
+                t +=1
+            else:
+                t = max(1, t-1)
         return c, U, V
                     
                 
@@ -123,7 +128,7 @@ class RandomWeightedMatchingSolverF:
         Finds a viable solution generator for greedy matching solver    
     '''    
         
-    def __init__(self, C, R):
+    def __init__(self, C, R, nstop=10):
 
         index_forbidden = R.astype('bool')
 
@@ -135,6 +140,7 @@ class RandomWeightedMatchingSolverF:
         P = (D.T /D.sum(axis=1)).T
         
         self.P = P 
+        self.nstop = nstop
 
     def _update_probability_(self, P, updaterows, removecol):
         '''
@@ -153,8 +159,8 @@ class RandomWeightedMatchingSolverF:
     def solve(self):
 
         numpires, ngames = self.P .shape
-
-        
+        nstop = self.nstop 
+        t = 0 
         feasible = False 
         while not(feasible): 
             P = self.P 
@@ -165,13 +171,15 @@ class RandomWeightedMatchingSolverF:
 
             indexgames   = np.zeros((ngames,), dtype=np.int32 )
             feasible = True 
-            
-            for i,u in enumerate(indexumpires):                    
-                print i,'\t',u,'\t',P[u,:]
-
+            status   = 1
+            for i,u in enumerate(indexumpires):                                    
                 pu = P[u,:] 
-                if (np.isnan(pu).any()) | ((float(pu.sum()) < 0.99) | (float(pu.sum()) > 1.01)):
-                    feasible = False 
+                pu_sum = float(pu.sum())
+                if ((np.isnan(pu).any()) | (pu_sum < 0.99) | (pu_sum > 1.01)):
+                    print 'unfeasible\t',i,'\t',u,'\t',P[u,:]
+                    t += 1
+                    feasible = t > nstop 
+                    status   = 0
                     break 
                 else:
                     g = np.random.choice(np.arange(numpires), size=1, replace=True, p=pu)
@@ -182,7 +190,8 @@ class RandomWeightedMatchingSolverF:
                         removecol = g 
                         P = self._update_probability_(P, updaterows, removecol)             
 
-        return indexumpires, indexgames    
+        
+        return indexumpires, indexgames, status     
 
 #Implementation of the hungarian method         
 class BipartiteMatchingSolver:

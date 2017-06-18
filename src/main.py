@@ -29,7 +29,7 @@ if not os.path.exists(output_dir):
 d1 = 0 
 d2 = 0 
 replaceperc  = 0.15
-npopulation = 500
+npopulation = 100
 population  = ga_initialpopulation(npopulation, D, S, d1, d2)
 df          = population[0].to_frame(D,S)
 filepath    = output_dir + 'ga_population0000-8.csv'  
