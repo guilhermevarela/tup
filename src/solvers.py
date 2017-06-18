@@ -45,7 +45,7 @@ class RandomGreedyMatchingSolver:
             # Greedy Heuristic -> Take the shortest distance possible, using stable marriage
             #uindex, gindex = StableMatchingSolver(Tt).solve()
 #             uindex, gindex = StableMatchingSolverF(Tt, Ct).solve()
-            uindex, gindex = RandomGreedyMatchingSolverF(Tt, Ct).solve()
+            uindex, gindex = RandomWeightedMatchingSolverF(Tt, Ct).solve()
             
             U[t, uindex] = (gindex+1)
             c[t] = Tt[uindex, gindex].sum()
@@ -118,48 +118,72 @@ class StableMatchingSolverF:
         result  = self.matcher()
         return result                
 
-class PariallyStableMatchingSolverF:
+class RandomWeightedMatchingSolverF:
     '''
         Finds a viable solution generator for greedy matching solver    
     '''    
         
     def __init__(self, C, R):
-        u, g, f = ndarray_to_dict(C, R)
-        self.u = u 
-        self.g = g 
-        self.f = f 
-        self.C = C 
 
-    # creates a zip with lengths         
-    def _zipped_conflict_umpires_(self):
-        umpires_nforbidden = {k:len(values) for k, values in self.f.items()}
-        conflicts = {} 
-        for u, nforbidden in umpires_nforbidden.items():
-            if conflicts.has_key(nforbidden):
-                conflicts[nforbidden] += u 
-            else:    
-                conflicts[nforbidden] = [u]
-        conflicts  = zip(conflicts.keys(), conflicts.values())
-                
-        return sorted(conflicts, key=lambda x: x[-1], reverse=True)         
+        index_forbidden = R.astype('bool')
+
+        C = C.astype('float')
+        SC = C.sum(axis=1)
+        D = (SC-C.T).T  
+        D[index_forbidden] = 0 
+        
+        P = (D.T /D.sum(axis=1)).T
+        
+        self.P = P 
+
+    def _update_probability_(self, P, updaterows, removecol):
+        '''
+            Removes ith column updating property of P
+            P[updaterows,:].sum(axis=1) = 1
+        '''    
+        for row in updaterows:
+            pr = P[row, removecol]
+            for col in xrange(P.shape[1]):
+                if col == removecol:
+                    P[row, col] = 0 
+                elif pr <0.99:
+                    P[row, col]=P[row, col]/(1-pr)     
+        return P             
+
     def solve(self):
-        # Start picking from most restricted to less restricted - 
-        # if an umpire has any restrictions his choice is never revisited
-        f = self.f 
-        umpirepref = self.u
-        gamepref = self.g  
+
+        numpires, ngames = self.P .shape
+
         
-#         conflictumpires  =  self._zipped_conflict_umpires_()
-#         for nc, umpires  in conflictumpires.items(): 
-#             for iu in np.random.shuffle(umpires):
-#                 iforbidden = f[iu]                
-#                 if nc > 0:
-#                     # Greedly select non-forbidden preference
-#                     
-             
-          
-        
-        return 0     
+        feasible = False 
+        while not(feasible): 
+            P = self.P 
+
+            
+            indexumpires = np.arange(numpires)
+            np.random.shuffle(indexumpires)
+
+            indexgames   = np.zeros((ngames,), dtype=np.int32 )
+            feasible = True 
+            
+            for i,u in enumerate(indexumpires):                    
+                print i,'\t',u,'\t',P[u,:]
+
+                pu = P[u,:] 
+                if (np.isnan(pu).any()) | ((float(pu.sum()) < 0.99) | (float(pu.sum()) > 1.01)):
+                    feasible = False 
+                    break 
+                else:
+                    g = np.random.choice(np.arange(numpires), size=1, replace=True, p=pu)
+                
+                    indexgames[i] = g          
+                    if i < numpires-1:  
+                        updaterows = indexumpires[(i+1):]
+                        removecol = g 
+                        P = self._update_probability_(P, updaterows, removecol)             
+
+        return indexumpires, indexgames    
+
 #Implementation of the hungarian method         
 class BipartiteMatchingSolver:
     def __init__(self, C):
