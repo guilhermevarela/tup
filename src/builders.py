@@ -4,6 +4,7 @@ Created on Jun 8, 2017
 @author: Varela
 '''
 import numpy as np 
+from utils import umpire_at
 
 def travel_builder(D, S, U, t):
     # Builds a matrix for maximum flow algorithm     
@@ -43,25 +44,6 @@ def schedule_builder(opponents):
 def umpires_builder(nrounds,nteams):
     return np.zeros((nrounds, int(nteams/2)), dtype=np.int32)
 
-def constraint_violationmask_builder(D, S, U, t, d1, d2):
-    # Produces a Cmask[numpires, ntemns]
-    numpires = S.shape[1]
-    # C4, C5 indicator
-    Cmask     = np.zeros((numpires,2*numpires),dtype=np.int32)
-    idumpires = np.arange(numpires).reshape(1,numpires)
-    
-    if t > 0:                
-        y   =  max(t-(numpires-d1),0)  
-        U4  = U[y:t,:]                                  # umpire game history
-        S4  = S[y:t,:,0].reshape((t-y,numpires))       # last game venue
-        L4  = S4[:,U4[0,:]-1]        
-        colsindex4 = L4 - 1                             # locations positions
-        rowsindex4 = np.tile(idumpires,(t-y,1))    
-        Cmask[rowsindex4,colsindex4] = 1
-                             
-            
-    return Cmask     
-            
 def constraint_4_builder(D, S, U, t, d1):
     # C4[numpires, ngames] where 0 doesn't have a penalty  
     numpires = S.shape[1]
@@ -73,24 +55,22 @@ def constraint_4_builder(D, S, U, t, d1):
     
     if t > 0:                
         y           = max(t-(numpires-d1),0)  
-        UI          = np.array( U[y:t,:]-1 )                                  
-        HV          = S[y:t,:,0]                                #ALL HOME VENUES
-#         L           = HV[:,UI[0]]                               #UMPIRE LOCATIONS AT t-1
+#         UI          = np.array( U[y:t,:]-1 )                                  
+#         HV          = S[y:t,:,0]                                #ALL HOME VENUES
+
         # MAPS LOCATIONS TO UMPIRES
-        L = np.zeros(UI.shape, dtype=np.int32)
-        for i, idx in enumerate(UI.tolist()):
-            L[i,idx] = HV[i,:]
-#         C           = L - 1                                     #COLS INDEX 
-#         R           = np.tile(idumpires,(t-y,1))    
+#         L = np.zeros(UI.shape, dtype=np.int32)
+#         for i, idx in enumerate(UI.tolist()):
+#             L[i,idx] = HV[i,:]
+        s = slice(y,t)
+        L = umpire_at(S, U, s)
         #Constraints 
         LI = (L - 1)                                    #COLS INDEX         
         for idg in LI.tolist():
-            Cmask[idumpires,idg] = 1
-#         Cmask[R,C] = 1
-        
+            Cmask[idumpires,idg] = 1        
         
         idt  = (S[t,:,0].reshape((numpires,))-1)
-#         VIt  = (HVt-1)
+
         C4t = Cmask[:,idt] 
         print 'Track record Home venues'
         print L  

@@ -5,13 +5,10 @@ Created on Jun 8, 2017
 
 '''
 import numpy as np
+from utils import umpire_at
 import scipy.optimize as opt
 
-import sys
-sys.path.insert(0, '../src/joyrexus')
 
-# from joyrexus.match import Matcher
-# from match import Matcher
 from builders import constraint_4_builder, travel_builder
 
 class RandomGreedyMatchingSolver:    
@@ -31,30 +28,28 @@ class RandomGreedyMatchingSolver:
         # initialize umpires and violations
         nrounds, numpires, _ = S.shape
         U = np.zeros((nrounds,numpires),dtype=np.int32)                
-        V = np.zeros((nrounds,numpires),dtype=np.int32)
+        V = np.zeros((nrounds,numpires*numpires),dtype=np.int32)
         c = np.zeros((nrounds,),dtype=np.int32)
+
         # random assignment at time 0
+        #debug 
         U[0,:] = np.arange(numpires) +1
-        #bug hunting
-#         U[0,:] = [1,2,3,4]
-#         U[1,:] = [4,1,3,2]
-# #         
-#         np.random.shuffle(U[0,:])
-        
+
         t = 1
-        # for t in xrange(1,nrounds):
+
         while t < nrounds: 
 
             Ct = constraint_4_builder(D, S, U, t, d1)
             Tt = travel_builder(D, S, U, t)
-            
-            # Greedy Heuristic -> Take the shortest distance possible, using stable marriage
-            #uindex, gindex = StableMatchingSolver(Tt).solve()
-#             uindex, gindex = StableMatchingSolverF(Tt, Ct).solve()
+
             uindex, gindex, status = RandomWeightedMatchingSolverF(Tt, Ct, 100).solve()
-            if status == 1: 
+            if status == 1:             
                 U[t, uindex] = (gindex+1)
+                print 'New umpire locations @ %d' % (t)
+                print umpire_at(S, U, t)
+                                                
                 c[t] = Tt[uindex, gindex].sum()
+                V[t,:] = Ct.flatten()
                 t +=1
             else:
                 t = max(1, t-1)
@@ -119,7 +114,8 @@ class RandomWeightedMatchingSolverF:
     '''    
         
     def __init__(self, C, R, nstop=10):
-
+        
+        self.C = C 
         index_forbidden = R.astype('bool')
 
         C = C.astype('float')
@@ -131,6 +127,7 @@ class RandomWeightedMatchingSolverF:
         
         self.P = P 
         self.nstop = nstop
+        
 
     def _update_probability_(self, P, updaterows, removecol):
         '''
@@ -174,7 +171,8 @@ class RandomWeightedMatchingSolverF:
                 else:
                     games = np.random.choice(np.arange(numpires), size=1, replace=True, p=pu)
                     g = games[0]
-                    
+                    if self.C[u,g] == 1:
+                        import code; code.interact(local=dict(globals(), **locals()))
                     indexgames[u] = g          
                     if i < numpires-1:  
                         updaterows = indexumpires[(i+1):]
