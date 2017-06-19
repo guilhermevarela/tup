@@ -96,7 +96,7 @@ class TUP(object):
         return pd.DataFrame(data=violations, columns=columns,index=xrange(nrounds))
     
     def _umpires_to_frame_(self, S, nrounds, numpires):                
-        umpirecolumns      = ['Umpire #%d'%(x+1) for x in xrange(numpires)]        
+        umpirecolumns      = ['Umpire#%d'%(x+1) for x in xrange(numpires)]        
         index              =xrange(nrounds)        
         UI = np.array( self.U )-1 
 
@@ -116,7 +116,7 @@ class TUP(object):
 
         return pd.DataFrame(data=Gout, columns=gamescolumns,index=xrange(nrounds))                     
     def _home_to_frame(self,S ,nrounds, numpires):
-        home_cols        = ['Umpire @ #%d'%(x+1) for x in xrange(numpires)]                 
+        home_cols        = ['Umpire#%d  @'%(x+1) for x in xrange(numpires)]                 
         home_data        = umpire_at(S, self.U, slice(0,nrounds))
         return pd.DataFrame(data=home_data, columns=home_cols,index=xrange(nrounds))
         

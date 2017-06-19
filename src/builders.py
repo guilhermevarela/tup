@@ -44,8 +44,7 @@ def schedule_builder(opponents):
 def umpires_builder(nrounds,nteams):
     return np.zeros((nrounds, int(nteams/2)), dtype=np.int32)
 
-def constraint_4_builder(D, S, U, t, d1):
-    # C4[numpires, ngames] where 0 doesn't have a penalty  
+def constraint_4_builder(D, S, U, t, d1):  
     numpires = S.shape[1]
     nmatches = numpires    
     nvenues  = 2*numpires 
@@ -54,14 +53,9 @@ def constraint_4_builder(D, S, U, t, d1):
     
     
     if t > 0:                
-        y           = max(t-(numpires-d1),0)  
-#         UI          = np.array( U[y:t,:]-1 )                                  
-#         HV          = S[y:t,:,0]                                #ALL HOME VENUES
-
+          
         # MAPS LOCATIONS TO UMPIRES
-#         L = np.zeros(UI.shape, dtype=np.int32)
-#         for i, idx in enumerate(UI.tolist()):
-#             L[i,idx] = HV[i,:]
+        y           = max(t-(numpires-d1),0)        
         s = slice(y,t)
         L = umpire_at(S, U, s)
         #Constraints 
@@ -71,13 +65,7 @@ def constraint_4_builder(D, S, U, t, d1):
         
         idt  = (S[t,:,0].reshape((numpires,))-1)
 
-        C4t = Cmask[:,idt] 
-        print 'Track record Home venues'
-        print L  
-        print 'Current home venue',
-        print S[t,:,0].reshape((numpires,))
-        print 'Constraint'
-        print C4t
+        C4t = Cmask[:,idt]         
                                    
     return C4t     
                 

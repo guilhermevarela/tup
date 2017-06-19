@@ -34,7 +34,8 @@ class RandomGreedyMatchingSolver:
         # random assignment at time 0
         #debug 
         U[0,:] = np.arange(numpires) +1
-
+        np.random.shuffle(U[0,:])
+        
         t = 1
 
         while t < nrounds: 
@@ -44,20 +45,15 @@ class RandomGreedyMatchingSolver:
 
             uindex, gindex, status = RandomWeightedMatchingSolverF(Tt, Ct, 100).solve()
             if status == 1:             
-                U[t, uindex] = (gindex+1)
-                print 'New umpire locations @ %d' % (t)
-                print umpire_at(S, U, t)
-                                                
+                U[t, uindex] = (gindex+1)                                                                
                 c[t] = Tt[uindex, gindex].sum()
                 V[t,:] = Ct.flatten()
+                
                 t +=1
             else:
                 t = max(1, t-1)
         return c, U, V
-                    
-                
-                                                
-                 
+                                                                                                 
 class StableMatchingSolver:
     '''
         Conventional StableMatchingSolver input is a cost matrix - both umpires and games prefer the 
