@@ -74,17 +74,30 @@ def constraint_4_builder(D, S, U, t, d1):
     if t > 0:                
         y           = max(t-(numpires-d1),0)  
         UI          = np.array( U[y:t,:]-1 )                                  
-        HV          = S[y:t,:,0].reshape((t-y,numpires))        #ALL HOME VENUES
-        L           = HV[:,UI[0,:]]                             #HOME VENUES SWAPPED PER EACH
-        C           = L - 1                                     #COLS INDEX 
-        R           = np.tile(idumpires,(t-y,1))    
+        HV          = S[y:t,:,0]                                #ALL HOME VENUES
+#         L           = HV[:,UI[0]]                               #UMPIRE LOCATIONS AT t-1
+        # MAPS LOCATIONS TO UMPIRES
+        L = np.zeros(UI.shape, dtype=np.int32)
+        for i, idx in enumerate(UI.tolist()):
+            L[i,idx] = HV[i,:]
+#         C           = L - 1                                     #COLS INDEX 
+#         R           = np.tile(idumpires,(t-y,1))    
+        #Constraints 
+        LI = (L - 1)                                    #COLS INDEX         
+        for idg in LI.tolist():
+            Cmask[idumpires,idg] = 1
+#         Cmask[R,C] = 1
         
-        Cmask[R,C] = 1
         
-        HVt = S[t,:,0].reshape((numpires,))
-        VIt  = (HVt-1)
-        C4t = Cmask[:,VIt] 
-        
+        idt  = (S[t,:,0].reshape((numpires,))-1)
+#         VIt  = (HVt-1)
+        C4t = Cmask[:,idt] 
+        print 'Track record Home venues'
+        print L  
+        print 'Current home venue',
+        print S[t,:,0].reshape((numpires,))
+        print 'Constraint'
+        print C4t
                                    
     return C4t     
                 

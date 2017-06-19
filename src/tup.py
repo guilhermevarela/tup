@@ -58,13 +58,14 @@ class TUP(object):
         costscolumns       = ['D']
         index              =xrange(nrounds)
         
-        permutationindex = (self.U-1)        
+        UI = np.array( self.U )-1 
+                
         Uout    = np.empty((nrounds,numpires), dtype=object)
         cout    = np.empty((nrounds,1), dtype=object)
          
         for r  in xrange(nrounds):
-            p = permutationindex[r] 
-            roundlist = S[r][p]
+#             p = permutationindex[r]         
+            roundlist = S[r, UI[r,:]]
             cout[r] = "{:,}".format(c[r]) 
             for t, tuplelist in enumerate(roundlist):
                 Uout[r,t]  =  '(%02d,%02d)' % tuple(tuplelist)

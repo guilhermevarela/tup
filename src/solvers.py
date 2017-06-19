@@ -11,7 +11,7 @@ import sys
 sys.path.insert(0, '../src/joyrexus')
 
 # from joyrexus.match import Matcher
-from match import Matcher
+# from match import Matcher
 from builders import constraint_4_builder, travel_builder
 
 class RandomGreedyMatchingSolver:    
@@ -35,7 +35,11 @@ class RandomGreedyMatchingSolver:
         c = np.zeros((nrounds,),dtype=np.int32)
         # random assignment at time 0
         U[0,:] = np.arange(numpires) +1
-        np.random.shuffle(U[0,:])
+        #bug hunting
+#         U[0,:] = [1,2,3,4]
+#         U[1,:] = [4,1,3,2]
+# #         
+#         np.random.shuffle(U[0,:])
         
         t = 1
         # for t in xrange(1,nrounds):
@@ -109,20 +113,6 @@ class StableMatchingSolver:
                               
         return indexumpires, indexgames                
 
-class StableMatchingSolverF:
-    '''
-        StableMatchingSolver with restrictions - some pairings are forbidden  
-    '''
-    def __init__(self, C, F):
-        # Convert C,R to dictionary
-        u, g, f = ndarray_to_dict(C, F)        
-        self.matcher = Matcher(u, g, f)
-        
-                  
-    def solve(self):
-        result  = self.matcher()
-        return result                
-
 class RandomWeightedMatchingSolverF:
     '''
         Finds a viable solution generator for greedy matching solver    
@@ -163,7 +153,7 @@ class RandomWeightedMatchingSolverF:
         t = 0 
         feasible = False 
         while not(feasible): 
-            P = self.P 
+            P = np.array(self.P) 
 
             
             indexumpires = np.arange(numpires)
@@ -182,15 +172,16 @@ class RandomWeightedMatchingSolverF:
                     status   = 0
                     break 
                 else:
-                    g = np.random.choice(np.arange(numpires), size=1, replace=True, p=pu)
-                
-                    indexgames[i] = g          
+                    games = np.random.choice(np.arange(numpires), size=1, replace=True, p=pu)
+                    g = games[0]
+                    
+                    indexgames[u] = g          
                     if i < numpires-1:  
                         updaterows = indexumpires[(i+1):]
                         removecol = g 
                         P = self._update_probability_(P, updaterows, removecol)             
 
-        
+        indexumpires = np.arange(numpires)
         return indexumpires, indexgames, status     
 
 #Implementation of the hungarian method         
