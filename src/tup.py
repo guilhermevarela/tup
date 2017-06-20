@@ -7,8 +7,8 @@ Created on Jun 12, 2017
 import numpy as np
 import pandas as pd  
 import signal 
-from solvers import RandomGreedyMatchingSolver, BipartiteMatchingSolver
-from builders import travel_builder
+from solvers import RandomGreedyMatchingSolver, BipartiteMatchingSolverR
+from builders import travel_builder, restraint_builder
 from utils import umpire_at
 class TUP(object):
     '''
@@ -18,12 +18,8 @@ class TUP(object):
 
     def __init__(self, D, S, d1, d2, maxsecs=5):
 
-        
-        
-        
         cost, solution, violations =  RandomGreedyMatchingSolver(D, S, d1, d2).solve()
-        
-        
+                
         nrounds             = S.shape[0]
         self.cost           = cost 
         self.score          = np.sum(cost)
@@ -47,8 +43,9 @@ class TUP(object):
         U = self.U
         c = self.cost 
         for t1 in xrange(t+1,nrounds):
+            Rt  = restraint_builder(D, S, U, t, d1, d2)
             Tt  = travel_builder(D,S,U,t1)
-            solver = BipartiteMatchingSolver(Tt)
+            solver = BipartiteMatchingSolverR(Tt,Rt)
             UI, GI, ct = solver.solve()
             U[t1,UI] = (GI+1)
             c[t1] = ct 

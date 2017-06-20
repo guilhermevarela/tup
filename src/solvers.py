@@ -5,11 +5,11 @@ Created on Jun 8, 2017
 
 '''
 import numpy as np
-from utils import umpire_at
+# from utils import umpire_at
 import scipy.optimize as opt
 
 
-from builders import constraint_4_builder, travel_builder
+from builders import restraint_builder, travel_builder, penalty_builder
 
 class RandomGreedyMatchingSolver:    
     def __init__(self, D, S, d1, d2):
@@ -23,6 +23,7 @@ class RandomGreedyMatchingSolver:
         D = self.D  
         S = self.S          
         d1 = self.d1
+        d2 = self.d2
                  
         
         # initialize umpires and violations
@@ -31,27 +32,26 @@ class RandomGreedyMatchingSolver:
         V = np.zeros((nrounds,numpires*numpires),dtype=np.int32)
         c = np.zeros((nrounds,),dtype=np.int32)
 
-        # random assignment at time 0
-        #debug 
-        U[0,:] = np.arange(numpires) +1
-        np.random.shuffle(U[0,:])
         
-        t = 1
-
-        while t < nrounds: 
-
-            Ct = constraint_4_builder(D, S, U, t, d1)
-            Tt = travel_builder(D, S, U, t)
-
-            uindex, gindex, status = RandomicGreedySolverF(Tt, Ct, 10).solve()                        
-            if status == 1:             
-                U[t, uindex] = (gindex+1)                                                                
-                c[t] = Tt[uindex, gindex].sum()
-                V[t,:] = Ct.flatten()
-                
+        t = 0
+        while t < nrounds:
+            if t == 0:
+                U[0,:] = np.arange(numpires)+1 
+                np.random.shuffle(U[0,:])
                 t +=1
-            else:
-                t = max(1, t-1)
+            else:                                                                  
+                Rt = restraint_builder(D, S, U, t, d1, d2)
+                Tt = travel_builder(D, S, U, t)
+
+                uindex, gindex, status = RandomicGreedySolverF(Tt, Rt, 100).solve()                        
+                if status == 1:             
+                    U[t, uindex] = (gindex+1)                                                                
+                    c[t] = Tt[uindex, gindex].sum()
+                    V[t,:] = Rt.flatten()
+                
+                    t +=1
+                else:
+                    t = max(0, t-1)
         return c, U, V
                                                                                                  
 class StableMatchingSolver:
@@ -212,24 +212,20 @@ class BipartiteMatchingSolver:
         c = self.C[Ia,Ij].sum()
         return Ia, Ij, c
 
-def ndarray_to_dict(C, R):
-    UP =  np.argsort(C, axis=1)     # umpire preferences
-    GP =  np.argsort(C, axis=0)     # game preferences
-        
-         
-    R = np.matrix( R.astype('bool') )
-    u = dict(enumerate(UP))
-    u = {k: list(v) for k, v in u.items()}
-    g = dict(enumerate(GP.T))
-    g = {k: list(v) for k, v in g.items()}
-    # forbidden transformation
-    f = dict(
-        enumerate(
-            [ 
-                list(ary) for ary in [np.where(row)[-1] for row in R]
-            ]
-        )
-    )
-            
-            
-    return u,g,f        
+class BipartiteMatchingSolverR:
+    def __init__(self, C, R):
+        self.C = C          # residual graph
+        self.R = R          # residual graph
+    
+    # Ia, Ij, c = solve()
+    # Ia .: index of applicants
+    # Ij .: index of jobs
+    # c .: total costs
+    def solve(self):
+        D = self.C 
+        R = self.R 
+
+        P = penalty_builder(D, R)                     
+        Ia, Ij = opt.linear_sum_assignment(D + P)
+        c = D[Ia,Ij].sum()
+        return Ia, Ij, c    

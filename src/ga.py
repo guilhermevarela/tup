@@ -6,6 +6,8 @@ Created on Jun 9, 2017
 from tup import TUP
 import numpy as np
 import signal
+from pygments.lexers.x10 import X10Lexer
+
 ga_abort = False
 def ga_abort_individual(signum, frame):
         print 'aborting individual ', signum
@@ -38,13 +40,19 @@ def ga_initialpopulation(npopulation, D, S, d1, d2, verbose=True):
         print "ga_initialpopulation\t(%03d/%03d)" % (npopulation,npopulation)
     return  population     
 
-def ga_crossover(D, S, d1, d2, population, replaceperc=0.15):
+def ga_crossover(D, S, d1, d2, population, replaceperc=0.15, verbose=True):
     ncrossover = int(len(population)/2)
     nreplace   = int(len(population) * replaceperc)
           
     newgeneration = []
     
+    goprint = False 
+    tries   = 0
     while len(newgeneration) < ncrossover:
+        if (len(newgeneration) % 0.1*ncrossover == 0) & verbose & goprint:
+            print 'ga_crossover \t(%04d/%04d)\ttries\t05d%' % (len(newgeneration),ncrossover,tries)
+                
+                  
         parents = np.random.choice(population,size=2,replace=False)
         solx    = parents[0]
         solcopy = parents[1] 
@@ -53,8 +61,9 @@ def ga_crossover(D, S, d1, d2, population, replaceperc=0.15):
 
         exists =  ga_exists(newgeneration,solx) | ga_exists(population,solx) 
         if not exists:
+            goprint = True  
             newgeneration.append(solx)
-    
+        tries   +=1
     #replace the best 
     newgeneration   = ga_rank(newgeneration)    
     replacestart = len(population)-nreplace
@@ -83,3 +92,4 @@ def ga_exists(population, solution):
 
 def ga_fitness(population, nbest): 
     return np.array(map(lambda x : x.score, population[:nbest])).mean()
+

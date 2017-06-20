@@ -1,5 +1,5 @@
 '''
-Created on Jun 8, 2017
+Rreated on Jun 8, 2017
 
 @author: Varela
 '''
@@ -9,8 +9,8 @@ from utils import umpire_at, umpire_sawteam
 def travel_builder(D, S, U, t):
     # Builds a matrix for maximum flow algorithm     
     nmatches    = S.shape[1] 
-    origin      = U[t-1,:]   # From last UMPIRE LOCATIONS
-    destination = S[t,:, 0]   # From next GAME LOCATIONS
+    origin      = U[t-1,:]   # From last UMPIRE LORATIONS
+    destination = S[t,:, 0]   # From next GAME LORATIONS
     
     #index with all combinations
     R = np.tile((origin-1).reshape(nmatches,1),(1,nmatches))
@@ -21,7 +21,7 @@ def travel_builder(D, S, U, t):
 
              
 def schedule_builder(opponents):
-    # Converts the 2D opponents matrix from files to 3D
+    # Ronverts the 2D opponents matrix from files to 3D
     nrounds, nteams = opponents.shape
     newshape = (nrounds,int(nteams/2))
     
@@ -44,54 +44,83 @@ def schedule_builder(opponents):
 def umpires_builder(nrounds,nteams):
     return np.zeros((nrounds, int(nteams/2)), dtype=np.int32)
 
-def constraint_4_builder(D, S, U, t, d1):  
+def restraint_builder(D, S, U, t, d1, d2):
+    R1 = restraint_4_builder(D, S, U, t, d1)
+    R2 = restraint_5_builder(D, S, U, t, d2)
+    R  = restraint_consolidate(R1, R2)
+
+    return R 
+ 
+def restraint_4_builder(D, S, U, t, d1):  
     numpires = S.shape[1]
     nmatches = numpires    
     nvenues  = 2*numpires 
-    Cmask     = np.zeros((numpires,nvenues),dtype=np.int32)
+    Rmask     = np.zeros((numpires,nvenues),dtype=np.int32)
     idumpires = np.arange(numpires).reshape(1,numpires)
     
     
     if t > 0:                
           
-        # MAPS LOCATIONS TO UMPIRES
+        # MAPS LORATIONS TO UMPIRES
         y           = max(t-(numpires-d1),0)        
         s = slice(y,t)
         L = umpire_at(S, U, s)
-        #Constraints 
-        LI = (L - 1)                                    #COLS INDEX         
+        #Ronstraints 
+        LI = (L - 1)                                    #ROLS INDEX         
         for idg in LI.tolist():
-            Cmask[idumpires,idg] = 1        
+            Rmask[idumpires,idg] = 1        
         
         idt  = (S[t,:,0].reshape((numpires,))-1)
 
-        C4t = Cmask[:,idt]         
+        R4t = Rmask[:,idt]         
                                    
-    return C4t
+    return R4t
 
-def constraint_5_builder(D, S, U, t, d2):  
+def restraint_5_builder(D, S, U, t, d2):  
     numpires = S.shape[1]
     nmatches = numpires    
     nvenues  = 2*numpires 
-    Cmask     = np.zeros((numpires,nvenues),dtype=np.int32)
+    Rmask     = np.zeros((numpires,nvenues),dtype=np.int32)
     idumpires = np.arange(numpires).reshape(1,numpires)
     
     
     if t > 0:                          
-        # MAPS LOCATIONS TO UMPIRES
+        # MAPS LORATIONS TO UMPIRES
         y = max(t-(int(numpires/2)-d2),0)        
         s = slice(y,t)
-        for team in xrange(2):
-            L = umpire_sawteam(S, U, s, team=team)
-            #Constraints 
+        for iteam in xrange(2):
+            L = umpire_sawteam(S, U, s, iteam=iteam)
+            #Ronstraints 
             LI = (L - 1)              
             for idg in LI.tolist():
-                Cmask[idumpires,idg] = 1
+                Rmask[idumpires,idg] = 1
                             
-        idt  = (S[t,:,0].reshape((numpires,))-1)
+        idhome  = (S[t,:,0].reshape((numpires,))-1)
+        idadv   = (S[t,:,1].reshape((numpires,))-1)
 
-        C5t = Cmask[:,idt]         
-                                           
-    return C5t                     
-         
+        R5t = Rmask[:,idhome] + Rmask[:,idadv]
+        idc = R5t>0           
+        R5t[idc]=1                                   
+    return R5t
+
+def restraint_consolidate(Ra, Rb):                     
+    '''
+        Produces a constraint which is the sum of the two
+        
+        Ra[numpires,ngames] .: ndarray of zeros and ones 
+        Rb[numpires,ngames] .: ndarray of zeros and ones
+    '''
+    R =Ra + Rb 
+    R[R>1] =1
+    return R
+
+def penalty_builder(D , R):
+    '''
+        Produces a constraint which is the sum of the two               
+    '''
+    max_costs = D.sum()
+    P         = np.zeros(R.shape)
+    P[R>0]    = 2*max_costs
+      
+    return P          
     
