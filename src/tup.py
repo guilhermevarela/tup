@@ -6,10 +6,12 @@ Created on Jun 12, 2017
 
 import numpy as np
 import pandas as pd  
-import signal 
+import os 
+ 
 from solvers import RandomGreedyMatchingSolver, BipartiteMatchingSolverR
-from builders import travel_builder, restraint_builder
+from builders import travel_builder
 from utils import umpire_at
+
 class TUP(object):
     '''
     TUP solution stores d1, d2
@@ -26,32 +28,31 @@ class TUP(object):
         self.U              = solution 
         self.violations     = violations 
         self.nrounds        = nrounds
+        self.fixpenalty     = fixpenalty
         
-        
-        
-            
         
     def x(self, other_tupsolution, D, S, d1, d2):
         nrounds = self.nrounds
         t = np.random.randint(1,nrounds-1)
         
-        #Settings before optimization        
-        self.cost[t+1:]         = other_tupsolution.cost[t+1:] 
-        self.U[t+1:,:]          = other_tupsolution.U[t+1:,:]
-        self.violations[t+1:,:] = other_tupsolution.violations[t+1:,:]
-        
+#         #Settings before optimization        
+#         self.cost[t+1:]         = other_tupsolution.cost[t+1:] 
+#         self.U[t+1:,:]          = other_tupsolution.U[t+1:,:]
+#         self.violations[t+1:,:] = other_tupsolution.violations[t+1:,:]
+#         
         U = self.U
         c = self.cost 
+        fixpenalty = self.fixpenalty
         for t1 in xrange(t+1,nrounds):            
             Tt  = travel_builder(D,S,U,t1)
-            solver = BipartiteMatchingSolverR(Tt, S, U, t1, d1, d2)
+            solver = BipartiteMatchingSolverR(Tt, S, U, t1, d1, d2, fixpenalty)
             UI, GI, ct = solver.solve()
             U[t1,UI] = (GI+1)
             c[t1] = ct 
 
         self.cost = c 
         self.U = U 
-        self.score = np.sum(c)
+
         return self
 
     def to_frame(self, D, S):
@@ -69,7 +70,20 @@ class TUP(object):
         return df 
 
     def score(self):
-        return self.cost.sum() + self.penalty.sum()    
+        return self.cost.sum() + self.penalty.sum()
+    
+    def persist(self,D, S, epochs, d1, d2, instancename, timestamp, ouput_dir=''):
+        if not(ouput_dir):
+            output_dir = "../src/output/%s/%d/" %(instancename,timestamp)
+            if not os.path.exists(output_dir):
+                os.makedirs(output_dir)
+                
+            
+        df          = self.to_frame(D,S)
+        ganame      = 'ga_%s_i%04d-d1_%02d-d2_%02d.csv' % (instancename,epochs,d1,d2)
+        filepath    = output_dir + ganame  
+        df.to_csv(filepath, sep=',')
+    
     def _violations_to_frame_(self, nrounds, numpires):
         umpires        = xrange(numpires) 
         columns        = ['C[%d,%d]'%(x+1,y+1) for x in umpires for y in umpires]        

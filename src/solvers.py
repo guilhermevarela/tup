@@ -9,7 +9,8 @@ import numpy as np
 import scipy.optimize as opt
 
 
-from builders import restraint_builder, travel_builder, restraint_segment_builder, penalty_fixcost_builder
+from builders import restraint_builder, travel_builder, restraint_segment_builder, penaltyfix_builder
+from main import fixpenalty
 
 class RandomGreedyMatchingSolver:    
     def __init__(self, D, S, d1, d2):
@@ -109,11 +110,12 @@ class RandomicGreedySolverF:
         Finds a viable solution generator for greedy matching solver    
     '''    
         
-    def __init__(self, C, F, nstop=10):
+    def __init__(self, C, F, fixpenalty, nstop=10):
         
         try: 
             self.C = C
             self.F = F 
+            self.fixpenalty = fixpenalty
          
             index_forbidden = F.astype('bool')
  
@@ -156,16 +158,18 @@ class RandomicGreedySolverF:
             Returns an umpire ordering, most number of conflicts having the hightest probability of coming in first
         '''
         umpireconflicts  = self.F.sum(axis=1).astype('float')
-        numpires = len(umpireconflicts) 
-        sumconflicts = umpireconflicts.sum()
-        umpireprob = (umpireconflicts+1)/(sumconflicts+numpires)
+        numpires         = len(umpireconflicts) 
+        sumconflicts     = umpireconflicts.sum()
+        umpireprob       = (umpireconflicts+1)/(sumconflicts+numpires)
         
-        return np.random.choice(np.arange(numpires),replace=False,size=numpires,p=umpireprob)
+        umpordering       = np.random.choice(np.arange(numpires),replace=False,size=numpires,p=umpireprob)
+        return umpordering
              
     def solve(self):
         if self.hopeless == 1:
             return [],[], 0
-        
+        F = self.F
+        fixpenalty = self.fixpenalty 
         numpires, ngames = self.P.shape
         nstop = self.nstop 
         t = 0 
@@ -196,6 +200,7 @@ class RandomicGreedySolverF:
                         P = self._updateP_(P, updaterows, removecol)             
 
         indexumpires = np.arange(numpires)
+        violations   = np.dot(F,games)
         return indexumpires, indexgames, status     
 
 #Implementation of the hungarian method         
@@ -213,13 +218,14 @@ class BipartiteMatchingSolver:
         return Ia, Ij, c
 
 class BipartiteMatchingSolverR:
-    def __init__(self, D, S, U, t,  d1, d2):
+    def __init__(self, D, S, U, t,  d1, d2, fixpenalty):
         self.D = D          
         self.S = S 
         self.U = U 
         self.t = t           
         self.d1 = d1 
         self.d2 = d2
+        self.fixpenalty = fixpenalty
     
     
     def solve(self):
@@ -231,7 +237,7 @@ class BipartiteMatchingSolverR:
         d2  = self.d2
 
         R = restraint_segment_builder(S, U, t, d1, d2)
-        P = penalty_fixcost_builder(R, fixcost=100)                       
+        P = penaltyfix_builder(R, fixpenalty=fixpenalty)                       
         Ia, Ij = opt.linear_sum_assignment(D + P)
         c = D[Ia,Ij].sum()
         return Ia, Ij, c    

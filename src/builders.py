@@ -183,12 +183,12 @@ def restrain_5_bysegment(umpsegment, newsegment, numpires, d2):
                      
 
     
-def penalty_fixcost_builder(R,fixcost=100):
+def penaltyfix_builder(R,fixpenalty=100):
     '''
         Produces a constraint which is the sum of the two               
     '''
     
-    P         = R.sum(axis=2)*fixcost      
+    P         = R.sum(axis=2)*fixpenalty      
     return P          
     
     

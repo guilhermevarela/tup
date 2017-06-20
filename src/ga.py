@@ -13,7 +13,7 @@ def ga_abort_individual(signum, frame):
         global ga_abort
         ga_abort = True 
 
-def ga_initialpopulation(npopulation, D, S, d1, d2, verbose=True):
+def ga_initialpopulation(npopulation, D, S, d1, d2, fixcost, verbose=True):
     population = []
     i = 0 
     tries = 0
@@ -24,7 +24,7 @@ def ga_initialpopulation(npopulation, D, S, d1, d2, verbose=True):
             
         signal.signal(signal.SIGALRM, ga_abort_individual)
         signal.alarm(5)                             
-        sol = TUP(D,S,d1,d2)
+        sol = TUP(D,S,d1,d2,fixcost)
         
         global ga_abort 
         if not(ga_abort):
