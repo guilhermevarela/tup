@@ -6,7 +6,7 @@ Created on Jun 12, 2017
 
 import numpy as np
 import pandas as pd  
- 
+import signal 
 from solvers import RandomGreedyMatchingSolver, BipartiteMatchingSolver
 from builders import travel_builder
 from utils import umpire_at
@@ -16,14 +16,24 @@ class TUP(object):
     '''
 
 
-    def __init__(self, D, S, d1, d2):                         
+    def __init__(self, D, S, d1, d2, maxsecs=5):
+
+        
+        
+        
         cost, solution, violations =  RandomGreedyMatchingSolver(D, S, d1, d2).solve()
+        
+        
         nrounds             = S.shape[0]
         self.cost           = cost 
         self.score          = np.sum(cost)
         self.U              = solution 
         self.violations     = violations 
         self.nrounds        = nrounds
+        
+        
+        
+            
         
     def x(self, other_tupsolution, D, S, d1, d2):
         nrounds = self.nrounds
@@ -53,36 +63,12 @@ class TUP(object):
             to_frame generates a pandas dataframe
             
         '''
-#         nrounds, numpires, _ = S.shape
-#         c                    = np.cumsum( self.cost )
-#         umpirecolumns      = ['Umpire #%d'%(x+1) for x in xrange(numpires)]
-#         costscolumns       = ['D']
-#         index              =xrange(nrounds)
-        
-#         UI = np.array( self.U )-1 
-                
-#         Uout    = np.empty((nrounds,numpires), dtype=object)
-#         cout    = np.empty((nrounds,1), dtype=object)
-         
-#         for r  in xrange(nrounds):
-# #             p = permutationindex[r]         
-#             roundlist = S[r, UI[r,:]]
-#             cout[r] = "{:,}".format(c[r]) 
-#             for t, tuplelist in enumerate(roundlist):
-#                 Uout[r,t]  =  '(%02d,%02d)' % tuple(tuplelist)
-                 
-#         columns = umpirecolumns + costscolumns
-#         outdata = np.concatenate((Uout, cout),axis=1)
-#         return pd.DataFrame(data=outdata, columns=columns, index=index)
         nrounds, numpires, _ = S.shape
         umpiresdf    = self._umpires_to_frame_(S, nrounds, numpires)
-#         gamesdf      = self._games_to_frame_(nrounds, numpires)
-#         violationsdf = self._violations_to_frame_(nrounds, numpires)
         homedf       = self._home_to_frame(S, nrounds, numpires) 
         costsdf      = self._costs_to_frame_(nrounds, numpires) 
 
         df = pd.concat((umpiresdf, homedf, costsdf),axis=1)
-#         df = pd.concat((umpiresdf,gamesdf,violationsdf, costsdf),axis=1)
 
         return df 
 

@@ -43,7 +43,7 @@ class RandomGreedyMatchingSolver:
             Ct = constraint_4_builder(D, S, U, t, d1)
             Tt = travel_builder(D, S, U, t)
 
-            uindex, gindex, status = RandomWeightedMatchingSolverF(Tt, Ct, 100).solve()
+            uindex, gindex, status = RandomicGreedySolverF(Tt, Ct, 10).solve()                        
             if status == 1:             
                 U[t, uindex] = (gindex+1)                                                                
                 c[t] = Tt[uindex, gindex].sum()
@@ -104,28 +104,40 @@ class StableMatchingSolver:
                               
         return indexumpires, indexgames                
 
-class RandomWeightedMatchingSolverF:
+class RandomicGreedySolverF:
     '''
         Finds a viable solution generator for greedy matching solver    
     '''    
         
-    def __init__(self, C, R, nstop=10):
+    def __init__(self, C, F, nstop=10):
         
-        self.C = C 
-        index_forbidden = R.astype('bool')
+        try: 
+            self.C = C
+            self.F = F 
+         
+            index_forbidden = F.astype('bool')
+ 
+            C = C.astype('float')
+            SC = C.sum(axis=1)
+            D = (SC-C.T).T  
+            D[index_forbidden] = 0 
+            
+            dsum = D.sum(axis=1)
+            if np.isnan( dsum ).any() | (dsum == 0).any():
+                self.hopeless = 1                
+            else:     
+                self.hopeless = 0
+                P = (D.T /dsum).T
+                self.P = P 
+                self.nstop = nstop
+                
+        except Exception as e: 
+            print e 
+         
+            
+        
 
-        C = C.astype('float')
-        SC = C.sum(axis=1)
-        D = (SC-C.T).T  
-        D[index_forbidden] = 0 
-        
-        P = (D.T /D.sum(axis=1)).T
-        
-        self.P = P 
-        self.nstop = nstop
-        
-
-    def _update_probability_(self, P, updaterows, removecol):
+    def _updateP_(self, P, updaterows, removecol):
         '''
             Removes ith column updating property of P
             P[updaterows,:].sum(axis=1) = 1
@@ -139,27 +151,36 @@ class RandomWeightedMatchingSolverF:
                     P[row, col]=P[row, col]/(1-pr)     
         return P             
 
+    def _randomic_greedy_umpireordering_(self):
+        '''
+            Returns an umpire ordering, most number of conflicts having the hightest probability of coming in first
+        '''
+        umpireconflicts  = self.F.sum(axis=1).astype('float')
+        numpires = len(umpireconflicts) 
+        sumconflicts = umpireconflicts.sum()
+        umpireprob = (umpireconflicts+1)/(sumconflicts+numpires)
+        
+        return np.random.choice(np.arange(numpires),replace=False,size=numpires,p=umpireprob)
+             
     def solve(self):
-
-        numpires, ngames = self.P .shape
+        if self.hopeless == 1:
+            return [],[], 0
+        
+        numpires, ngames = self.P.shape
         nstop = self.nstop 
         t = 0 
         feasible = False 
         while not(feasible): 
             P = np.array(self.P) 
 
-            
-            indexumpires = np.arange(numpires)
-            np.random.shuffle(indexumpires)
-
+            indexumpires = self._randomic_greedy_umpireordering_()
             indexgames   = np.zeros((ngames,), dtype=np.int32 )
-            feasible = True 
-            status   = 1
+            feasible     = True 
+            status       = 1
             for i,u in enumerate(indexumpires):                                    
                 pu = P[u,:] 
                 pu_sum = float(pu.sum())
                 if ((np.isnan(pu).any()) | (pu_sum < 0.99) | (pu_sum > 1.01)):
-                    print 'unfeasible\t',i,'\t',u,'\t',P[u,:]
                     t += 1
                     feasible = t > nstop 
                     status   = 0
@@ -167,13 +188,12 @@ class RandomWeightedMatchingSolverF:
                 else:
                     games = np.random.choice(np.arange(numpires), size=1, replace=True, p=pu)
                     g = games[0]
-                    if self.C[u,g] == 1:
-                        import code; code.interact(local=dict(globals(), **locals()))
+                  
                     indexgames[u] = g          
                     if i < numpires-1:  
                         updaterows = indexumpires[(i+1):]
                         removecol = g 
-                        P = self._update_probability_(P, updaterows, removecol)             
+                        P = self._updateP_(P, updaterows, removecol)             
 
         indexumpires = np.arange(numpires)
         return indexumpires, indexgames, status     

@@ -4,7 +4,7 @@ Created on Jun 8, 2017
 @author: Varela
 '''
 import numpy as np 
-from utils import umpire_at
+from utils import umpire_at, umpire_sawteam
 
 def travel_builder(D, S, U, t):
     # Builds a matrix for maximum flow algorithm     
@@ -67,7 +67,31 @@ def constraint_4_builder(D, S, U, t, d1):
 
         C4t = Cmask[:,idt]         
                                    
-    return C4t     
-                
+    return C4t
+
+def constraint_5_builder(D, S, U, t, d2):  
+    numpires = S.shape[1]
+    nmatches = numpires    
+    nvenues  = 2*numpires 
+    Cmask     = np.zeros((numpires,nvenues),dtype=np.int32)
+    idumpires = np.arange(numpires).reshape(1,numpires)
+    
+    
+    if t > 0:                          
+        # MAPS LOCATIONS TO UMPIRES
+        y = max(t-(int(numpires/2)-d2),0)        
+        s = slice(y,t)
+        for team in xrange(2):
+            L = umpire_sawteam(S, U, s, team=team)
+            #Constraints 
+            LI = (L - 1)              
+            for idg in LI.tolist():
+                Cmask[idumpires,idg] = 1
+                            
+        idt  = (S[t,:,0].reshape((numpires,))-1)
+
+        C5t = Cmask[:,idt]         
+                                           
+    return C5t                     
          
     
