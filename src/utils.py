@@ -4,8 +4,6 @@ Created on Jun 19, 2017
 @author: Varela
 '''
 import numpy as np 
-# import collections
-
 
 def umpire_at(S, U, t):
     '''
@@ -40,6 +38,23 @@ def umpire_sawteam(S, U, t, iteam=0):
         Y = S[t,idx,iteam]
             
     return Y        
+    
+def umpire2segment(S, U):
+    '''
+        dictionary of lists of tuples
+    '''            
+    nrounds  = U.shape[0]  
+    UI = np.array(U-1)
+    u2s = {}
+    for r  in xrange(nrounds):
+        roundlist = S[r, UI[r,:]]
+        for l, tuplelist in enumerate(roundlist):
+            if u2s.has_key(l):
+                u2s[l].append(tuple(tuplelist))
+            else:
+                u2s[l] = [tuple(tuplelist)]                    
+    return u2s  
+                    
     
     
     

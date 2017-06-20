@@ -16,7 +16,7 @@ class TUP(object):
     '''
 
 
-    def __init__(self, D, S, d1, d2, maxsecs=5):
+    def __init__(self, D, S, d1, d2, fixpenalty):
 
         cost, solution, violations =  RandomGreedyMatchingSolver(D, S, d1, d2).solve()
                 
@@ -42,10 +42,9 @@ class TUP(object):
         
         U = self.U
         c = self.cost 
-        for t1 in xrange(t+1,nrounds):
-            Rt  = restraint_builder(D, S, U, t, d1, d2)
+        for t1 in xrange(t+1,nrounds):            
             Tt  = travel_builder(D,S,U,t1)
-            solver = BipartiteMatchingSolverR(Tt,Rt)
+            solver = BipartiteMatchingSolverR(Tt, S, U, t1, d1, d2)
             UI, GI, ct = solver.solve()
             U[t1,UI] = (GI+1)
             c[t1] = ct 
@@ -69,7 +68,8 @@ class TUP(object):
 
         return df 
 
-        
+    def score(self):
+        return self.cost.sum() + self.penalty.sum()    
     def _violations_to_frame_(self, nrounds, numpires):
         umpires        = xrange(numpires) 
         columns        = ['C[%d,%d]'%(x+1,y+1) for x in umpires for y in umpires]        

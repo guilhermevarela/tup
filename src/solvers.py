@@ -9,7 +9,7 @@ import numpy as np
 import scipy.optimize as opt
 
 
-from builders import restraint_builder, travel_builder, penalty_builder
+from builders import restraint_builder, travel_builder, restraint_segment_builder, penalty_fixcost_builder
 
 class RandomGreedyMatchingSolver:    
     def __init__(self, D, S, d1, d2):
@@ -40,7 +40,7 @@ class RandomGreedyMatchingSolver:
                 np.random.shuffle(U[0,:])
                 t +=1
             else:                                                                  
-                Rt = restraint_builder(D, S, U, t, d1, d2)
+                Rt = restraint_builder(S, U, t, d1, d2)
                 Tt = travel_builder(D, S, U, t)
 
                 uindex, gindex, status = RandomicGreedySolverF(Tt, Rt, 100).solve()                        
@@ -213,19 +213,25 @@ class BipartiteMatchingSolver:
         return Ia, Ij, c
 
 class BipartiteMatchingSolverR:
-    def __init__(self, C, R):
-        self.C = C          # residual graph
-        self.R = R          # residual graph
+    def __init__(self, D, S, U, t,  d1, d2):
+        self.D = D          
+        self.S = S 
+        self.U = U 
+        self.t = t           
+        self.d1 = d1 
+        self.d2 = d2
     
-    # Ia, Ij, c = solve()
-    # Ia .: index of applicants
-    # Ij .: index of jobs
-    # c .: total costs
+    
     def solve(self):
-        D = self.C 
-        R = self.R 
+        D   = self.D           
+        S   = self.S 
+        U   = self.U 
+        t   = self.t 
+        d1  = self.d1  
+        d2  = self.d2
 
-        P = penalty_builder(D, R)                     
+        R = restraint_segment_builder(S, U, t, d1, d2)
+        P = penalty_fixcost_builder(R, fixcost=100)                       
         Ia, Ij = opt.linear_sum_assignment(D + P)
         c = D[Ia,Ij].sum()
         return Ia, Ij, c    

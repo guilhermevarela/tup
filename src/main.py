@@ -13,6 +13,12 @@ import timeit
 from builders       import schedule_builder
 from tup import TUP
 from ga import *
+
+def publish_score(scoremean, scorebest):    
+    strfit_mean= "{:,}".format(int(scoremean))
+    strfit_best= "{:,}".format(int(scorebest))
+    print 'ga\tepoch\t%04d\ttop score mean[%d]\t%s\ttop score\t%s' % (t,nfit,strfit_mean,strfit_best)
+    
 if __name__ == '__main__':
     pass
 
@@ -46,12 +52,10 @@ fitmv = tol*1000
 while not stop_criteria:
     population = ga_crossover(D, S, d1, d2, population, replaceperc)
       
-    fitscore   = ga_fitness(population, nfit)
-    stop_criteria = (t > tmax) | (abs(fitscore - fitmv) < tol)
-    fitscore_str    = "{:,}".format(int(fitscore))
-    bestscore_str   = "{:,}".format(int(population[0].score))
-    print 'ga\tepoch\t%04d\ttop score mean[%d]\t%s\ttop score\t%s' % (t,nfit,fitscore_str,bestscore_str)
-     
+    fitscore        = ga_fitness(population, nfit)
+    stop_criteria   = (t > tmax) | (abs(fitscore - fitmv) < tol)
+    
+    publish_score(fitscore, population[0].score)
     fitmv = (fitalpha)*fitscore + (1-fitalpha)*fitmv
     t +=1 
   

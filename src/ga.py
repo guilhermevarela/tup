@@ -6,7 +6,6 @@ Created on Jun 9, 2017
 from tup import TUP
 import numpy as np
 import signal
-from pygments.lexers.x10 import X10Lexer
 
 ga_abort = False
 def ga_abort_individual(signum, frame):
@@ -72,6 +71,8 @@ def ga_crossover(D, S, d1, d2, population, replaceperc=0.15, verbose=True):
     population = ga_rank(population)
 
     return population
+
+
 
 def ga_rank(population):
     '''
