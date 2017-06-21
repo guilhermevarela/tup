@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd  
 import os 
  
-from solvers import RandomGreedyMatchingSolver, BipartiteMatchingSolverR
+from solvers import RandomNaiveMatchingSolver, BipartiteMatchingSolverR
 from builders import travel_builder
 from utils import umpire_at
 
@@ -20,11 +20,10 @@ class TUP(object):
 
     def __init__(self, D, S, d1, d2, fixpenalty):
         #costs, penalties, U, V
-        solution, violations,cost, penalties  =  RandomGreedyMatchingSolver(D, S, d1, d2, fixpenalty).solve()
+        solution, violations,cost, penalties  =  RandomNaiveMatchingSolver(D, S, d1, d2, fixpenalty).solve()
                 
         nrounds             = S.shape[0]
-        self.cost           = cost 
-        self.score          = np.sum(cost)
+        self.costs           = cost 
         self.U              = solution 
         self.violations     = violations 
         self.nrounds        = nrounds        
@@ -37,13 +36,14 @@ class TUP(object):
         nrounds = self.nrounds
         t = np.random.randint(1,nrounds-1)
         
-#         #Settings before optimization        
-#         self.cost[t+1:]         = other_tupsolution.cost[t+1:] 
-#         self.U[t+1:,:]          = other_tupsolution.U[t+1:,:]
-#         self.violations[t+1:,:] = other_tupsolution.violations[t+1:,:]
-#         
+        #Settings before optimization        
+        self.costs[t+1:]         = other_tupsolution.costs[t+1:] 
+        self.U[t+1:,:]          = other_tupsolution.U[t+1:,:]
+        self.violations[t+1:,:] = other_tupsolution.violations[t+1:,:]
+        self.penalties[t+1:]  = other_tupsolution.penalties[t+1:]
+         
         U = self.U
-        c = self.cost 
+        c = self.costs 
         fixpenalty = self.fixpenalty
         for t1 in xrange(t+1,nrounds):            
             Tt  = travel_builder(D,S,U,t1)
@@ -52,7 +52,7 @@ class TUP(object):
             U[t1,UI] = (GI+1)
             c[t1] = ct 
 
-        self.cost = c 
+        self.costs = c 
         self.U = U 
 
         return self
@@ -72,7 +72,7 @@ class TUP(object):
         return df 
 
     def score(self):
-        return self.cost.sum() + self.penalty.sum()
+        return self.costs.sum() + self.penalties.sum()
     
     def persist(self,D, S, epochs, d1, d2, instancename, timestamp, ouput_dir=''):
         if not(ouput_dir):
@@ -120,7 +120,7 @@ class TUP(object):
         return pd.DataFrame(data=home_data, columns=home_cols,index=xrange(nrounds))
         
     def _costs_to_frame_(self, nrounds, numpires) :
-        c                    = np.cumsum( self.cost )
+        c                    = np.cumsum( self.costs )
         cout    = np.empty((nrounds,1), dtype=object)
         for r  in xrange(nrounds):
             cout[r] = "{:,}".format(c[r]) 

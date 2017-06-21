@@ -54,7 +54,20 @@ def umpire2segment(S, U):
             else:
                 u2s[l] = [tuple(tuplelist)]                    
     return u2s  
-                    
+
+def violations_3_counter(S, U):
+    nrounds,numpires = U.shape
+    nteams  = 2*numpires  
+    violations = np.zeros((numpires, nteams))
+    
+    for ump in xrange(numpires):
+        for r in xrange(nrounds):  
+            gameindex = U[r,ump]-1          
+            hometeam  = S[r,gameindex,0]
+            violations[ump, hometeam-1]+=1
+    return  (violations == 0).sum(axis=0)         
+             
+                        
     
     
     

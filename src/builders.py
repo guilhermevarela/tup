@@ -45,9 +45,9 @@ def umpires_builder(nrounds,nteams):
     return np.zeros((nrounds, int(nteams/2)), dtype=np.int32)
 
 def restraint_builder(S, U, t, d1, d2):
-    R1 = restraint_4_builder(S, U, t, d1)
-    R2 = restraint_5_builder(S, U, t, d2)
-    R  = restraint_consolidate(R1, R2)
+    R4 = restraint_4_builder(S, U, t, d1)
+    R5 = restraint_5_builder(S, U, t, d2)
+    R  = restraint_consolidate(R4, R5)
 
     return R 
  

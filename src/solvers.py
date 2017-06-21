@@ -5,20 +5,61 @@ Created on Jun 8, 2017
 
 '''
 import numpy as np
-# from utils import umpire_at
+from utils import violations_3_counter
 import scipy.optimize as opt
 
 
-from builders import restraint_builder, travel_builder, restraint_segment_builder, penaltyfix_builder
+from builders import restraint_builder, restraint_4_builder, restraint_5_builder, travel_builder, restraint_segment_builder, penaltyfix_builder
 
-# class StableMatchingSolverN:
-#         def __init__(self, D, S, d1, d2, fixpenalty=300):
-#         self.D = D 
-#         self.S = S 
-#         self.d1 =d1 
-#         self.d2 =d2         
-#         self.fixpenalty = fixpenalty
-#     
+class RandomNaiveMatchingSolver: 
+    def __init__(self, D, S, d1, d2, fixpenalty=300):
+        self.D = D 
+        self.S = S 
+        self.d1 =d1 
+        self.d2 =d2         
+        self.fixpenalty = fixpenalty
+    
+    def solve(self):
+        D          = self.D  
+        S          = self.S  
+        d1         = self.d1 
+        d2         = self.d2         
+        fixpenalty = self.fixpenalty  
+        
+        # initialize umpires and violations
+        nrounds, numpires, _ = S.shape
+        U = np.zeros((nrounds,numpires),dtype=np.int32)                
+        V = np.zeros((nrounds,3),dtype=np.int32)
+        penalties = np.zeros((nrounds,),dtype=np.int32)        
+        costs     = np.zeros((nrounds,),dtype=np.int32)
+
+        umpiresindex = np.arange(numpires)
+        for t in xrange(nrounds):
+            if t == 0:
+                U[0,:] = np.arange(numpires)+1 
+                np.random.shuffle(U[0,:])
+                t +=1
+            else:                                                                  
+                R4t       = restraint_4_builder(S, U, t, d1)
+                R5t       = restraint_5_builder(S, U, t, d2)
+                Tt        =      travel_builder(D, S, U, t)
+                
+                gamesindex   =  np.random.choice(umpiresindex,replace=False,size=numpires)
+                
+                
+                v4t = R4t[umpiresindex,gamesindex].sum() 
+                v5t = R5t[umpiresindex,gamesindex].sum()
+                 
+                U[t, umpiresindex] = (gamesindex+1)
+                V[t,:]             = [0,v4t,v5t]                                                                
+                costs[t]           = Tt[umpiresindex, gamesindex].sum()
+                penalties[t]       = fixpenalty*(V[t,:]).sum()
+                                                
+        v3t = violations_3_counter(S,U)        
+        V[-1,0] = v3t.sum()
+        penalties[-1] = fixpenalty* v3t.sum()
+        return U, V, costs, penalties 
+             
 class RandomGreedyMatchingSolver:    
     def __init__(self, D, S, d1, d2, fixpenalty=300):
         self.D = D 

@@ -79,11 +79,11 @@ def ga_rank(population):
     '''
         Performs descending fitness order
     '''
-    population.sort(key=lambda x : x.score)    
+    population.sort(key=lambda x : x.score())    
     return population
 
 def ga_exists(population, solution):     
-    duplicates = filter(lambda x : x.score == solution.score, population)
+    duplicates = filter(lambda x : x.score() == solution.score(), population)
     result = False 
     if not(duplicates is None):         
         for d in duplicates:
@@ -93,5 +93,5 @@ def ga_exists(population, solution):
     return result            
 
 def ga_fitness(population, nbest): 
-    return np.array(map(lambda x : x.score, population[:nbest])).mean()
+    return np.array(map(lambda x : x.score(), population[:nbest])).mean()
 
