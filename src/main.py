@@ -8,10 +8,9 @@ import pandas as pd
 import readers as rd  
 import os
 import timeit
-# from solvers         import * 
-# from builders       import schedule_builder, umpire_builder
+
 from builders       import schedule_builder
-# from tup import TUP
+
 from ga import ga_initialpopulation,ga_crossover, ga_fitness
 
 def publish_score(scoremean, scorebest):    
@@ -28,33 +27,26 @@ S = schedule_builder(opponents)
 
 timestamp = int(timeit.time.time())
 
-# output_dir = "../src/output/%s/%d/" %(instancename,timestamp)
-# if not os.path.exists(output_dir):
-#     os.makedirs(output_dir)
-  
-d1 = 2 
+### GA INITIAL POPULATION
+d1 = 1 
 d2 = 1
 epochs = 0 
 replaceperc  = 0.15
 npopulation = 500
-fixpenalty  = 300
+fixpenalty  = 100
 population  = ga_initialpopulation(npopulation, D, S, d1, d2, fixpenalty)
 fittest     = population[0]
 
-fittest.persist(D, S, epochs, d1, d2, instancename, timestamp)
-
-# df          = population[0].to_frame(D,S)
-# ganame      = 'ga_%s_i%04d-d1_%02d-d2_%02d.csv' % (instancename,0,d1,d2)
-# filepath    = output_dir + ganame  
-# df.to_csv(filepath, sep=',')
-
-
+### GA CROSSOVER 
 nfit = 30
 fitalpha  = 0.5
 tol = 3e-2
-maxepochs = 5e2
+maxepochs = 5e1
 stop_criteria = False
-fitmv = tol*1000 
+fitmv = tol*1000
+
+fittest.persist(D, S, epochs, d1, d2, instancename, timestamp)
+
 while not stop_criteria:
     population = ga_crossover(D, S, d1, d2, population, replaceperc)
       
@@ -65,12 +57,7 @@ while not stop_criteria:
     fitmv = (fitalpha)*fitscore + (1-fitalpha)*fitmv
     epochs +=1 
 
-# persist(self,D, S, epochs, d1, d2, instancename, timestamp, ouput_dir=''):  
+  
 fittest =  population[0]
 fittest.persist(D, S, epochs, d1, d2, instancename, timestamp)
  
-# df = population[0].to_frame(D,S)
-#   
-# ganame      = 'ga_%s_i%04d-d1_%02d-d2_%02d.csv' % (instancename,epochs,d1,d2)
-# filepath    = output_dir + ganame      
-# df.to_csv(filepath, sep=',')     

@@ -8,6 +8,7 @@ import numpy as np
 import signal
 
 ga_abort = False
+
 def ga_abort_individual(signum, frame):
         print 'aborting individual ', signum
         global ga_abort

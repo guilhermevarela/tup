@@ -19,16 +19,18 @@ class TUP(object):
 
 
     def __init__(self, D, S, d1, d2, fixpenalty):
-
-        cost, solution, violations =  RandomGreedyMatchingSolver(D, S, d1, d2).solve()
+        #costs, penalties, U, V
+        solution, violations,cost, penalties  =  RandomGreedyMatchingSolver(D, S, d1, d2, fixpenalty).solve()
                 
         nrounds             = S.shape[0]
         self.cost           = cost 
         self.score          = np.sum(cost)
         self.U              = solution 
         self.violations     = violations 
-        self.nrounds        = nrounds
+        self.nrounds        = nrounds        
         self.fixpenalty     = fixpenalty
+        
+        self.penalties      = penalties
         
         
     def x(self, other_tupsolution, D, S, d1, d2):

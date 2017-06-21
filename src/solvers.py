@@ -10,28 +10,36 @@ import scipy.optimize as opt
 
 
 from builders import restraint_builder, travel_builder, restraint_segment_builder, penaltyfix_builder
-from main import fixpenalty
 
+# class StableMatchingSolverN:
+#         def __init__(self, D, S, d1, d2, fixpenalty=300):
+#         self.D = D 
+#         self.S = S 
+#         self.d1 =d1 
+#         self.d2 =d2         
+#         self.fixpenalty = fixpenalty
+#     
 class RandomGreedyMatchingSolver:    
-    def __init__(self, D, S, d1, d2):
+    def __init__(self, D, S, d1, d2, fixpenalty=300):
         self.D = D 
         self.S = S 
         self.d1 =d1 
-        self.d2 =d2 
-        
+        self.d2 =d2         
+        self.fixpenalty = fixpenalty 
         
     def solve(self):
-        D = self.D  
-        S = self.S          
-        d1 = self.d1
-        d2 = self.d2
-                 
+        D          = self.D  
+        S          = self.S          
+        d1         = self.d1
+        d2         = self.d2
+        fixpenalty = self.fixpenalty 
         
         # initialize umpires and violations
         nrounds, numpires, _ = S.shape
         U = np.zeros((nrounds,numpires),dtype=np.int32)                
-        V = np.zeros((nrounds,numpires*numpires),dtype=np.int32)
-        c = np.zeros((nrounds,),dtype=np.int32)
+        V = np.zeros((nrounds,),dtype=np.int32)
+        penalties = np.zeros((nrounds,),dtype=np.int32)        
+        costs     = np.zeros((nrounds,),dtype=np.int32)
 
         
         t = 0
@@ -44,16 +52,18 @@ class RandomGreedyMatchingSolver:
                 Rt = restraint_builder(S, U, t, d1, d2)
                 Tt = travel_builder(D, S, U, t)
 
-                uindex, gindex, status = RandomicGreedySolverF(Tt, Rt, 100).solve()                        
+                uindex, gindex, violations, status = RandomicGreedySolverF(Tt, Rt, fixpenalty).solve()                        
                 if status == 1:             
-                    U[t, uindex] = (gindex+1)                                                                
-                    c[t] = Tt[uindex, gindex].sum()
-                    V[t,:] = Rt.flatten()
+                    U[t, uindex] = (gindex+1)
+                    V[t]         = violations                                                                
+                    costs[t]     = Tt[uindex, gindex].sum()
+                    penalties[t] = V[t]*fixpenalty
+                    
                 
                     t +=1
                 else:
                     t = max(0, t-1)
-        return c, U, V
+        return U, V, costs, penalties, 
                                                                                                  
 class StableMatchingSolver:
     '''
@@ -200,8 +210,8 @@ class RandomicGreedySolverF:
                         P = self._updateP_(P, updaterows, removecol)             
 
         indexumpires = np.arange(numpires)
-        violations   = np.dot(F,games)
-        return indexumpires, indexgames, status     
+        violations   = F[indexumpires, indexgames].sum()
+        return indexumpires, indexgames, violations, status     
 
 #Implementation of the hungarian method         
 class BipartiteMatchingSolver:
@@ -229,13 +239,13 @@ class BipartiteMatchingSolverR:
     
     
     def solve(self):
-        D   = self.D           
-        S   = self.S 
-        U   = self.U 
-        t   = self.t 
-        d1  = self.d1  
-        d2  = self.d2
-
+        D          = self.D           
+        S          = self.S 
+        U          = self.U 
+        t          = self.t 
+        d1         = self.d1  
+        d2         = self.d2
+        fixpenalty = self.fixpenalty
         R = restraint_segment_builder(S, U, t, d1, d2)
         P = penaltyfix_builder(R, fixpenalty=fixpenalty)                       
         Ia, Ij = opt.linear_sum_assignment(D + P)
