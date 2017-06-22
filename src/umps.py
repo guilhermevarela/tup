@@ -8,10 +8,15 @@ def umps2home(S, U):
 	'''	
 	#Home venues within schedule
 	H = S[:,:,0]
-	HU = np.zeros(H.shape,dtype=np.int32)	
+	HU = np.zeros(U.shape,dtype=np.int32)	
 	#Performs home venus adjusted to umps assignment
-	for r in xrange(H.shape[0]):		
-		HU[r,:] = H[r,U[r,:]-1]
+	# for r in xrange(U.shape[0]):		
+	# 	idr = U[r,:]-1
+	# 	HU[r,:] = H[r,idr]
+	for t in xrange(H.shape[0]):
+		for u, g in enumerate(U[t,:]):
+			homeindex = H[t,g-1]-1
+			HU[t, u] = homeindex
 	return HU 
 
 def umps2adversaries(S, U):
@@ -22,29 +27,35 @@ def umps2adversaries(S, U):
 	'''	
 	#adversary team within schedule
 	A = S[:,:,1]
-	AU = np.zeros(A.shape,dtype=np.int32)	
+	AU = np.zeros(U.shape,dtype=np.int32)	
 	
-	#Performs home venus adjusted to umps assignment
-	for r in xrange(A.shape[0]):
-		AU[r,:] = A[r,U[r,:]-1]
-	return AU	
+	#Performs home venue adjusted to umps assignment
+	for t in xrange(A.shape[0]):
+		for u, g in enumerate(U[t,:]):
+			advindex = A[t,g-1]-1
+			AU[t, u] =advindex
+		
+	return AU
 
 def umps2violations3(S,U):
 	'''
 		umps2violations3 every umpire sees a team at least once at home
 
 	'''	
-	H = umps2home(S,U)
-	nrounds, numps =  H.shape
+	H = umps2home(S, U)		
+	nrounds, numps, _ =  S.shape
+	nteams = 2*numps 
 	V3 = np.zeros(H.shape, dtype=np.int32)
-	aux = np.zeros((numps*2,numps))
-	umpsindex = np.arange(numps)
+	aux = np.zeros((numps*2, U.shape[1]))
+	umpsindex = np.arange(U.shape[1])
 
+	print aux.shape
 	for t in xrange(1,nrounds):
-		homeindex = H[t,:]-1
-		aux[homeindex, umpsindex] +=1
+		for u, g in enumerate(U[t,:]):
+			homeindex = H[t,g-1]-1
+			aux[homeindex, u] +=1
 
-	V3[-1,:]= (aux == 0).sum(axis=0).T 		
+	V3[-1,:]= (aux == 0).sum(axis=0) 		
 	return V3 		
 
 def umps2violations4(S,U,d1):
@@ -53,8 +64,8 @@ def umps2violations4(S,U,d1):
 		umps2violations4 no umpire is in home site more then once in numps-d1 periods
 
 	'''	
-	H = umps2home(S,U)
-	nrounds, numps =  H.shape
+	H = umps2home(S,U)	
+	nrounds, numps, _ = S.shape
 	V4 = np.zeros(H.shape, dtype=np.int32)
 
 	for t in xrange(1,nrounds):
@@ -72,8 +83,8 @@ def umps2violations5(S,U,d2):
 
 	'''	
 	H = umps2home(S,U)
-	A = umps2adversaries(S,U)
-	nrounds, numps =  H.shape
+	A = umps2adversaries(S,U)	
+	nrounds, numps, _ =  S.shape 
 	V5 = np.zeros(H.shape, dtype=np.int32)
 
 	for t in xrange(1,nrounds):
@@ -101,3 +112,22 @@ def umps2travel(D, S, U):
 
 		T[t,:] = D[origin-1,destination-1]		
 	return T
+
+def umps2cartesian(U1, U2):
+	'''
+
+		umps2cartesian computes the cartesean product of U1, U2 (ex: SQL CROSS JOIN) 
+		
+	'''	
+	t, numps = U1.shape	
+	
+	nrounds   = t+U2.shape[0]
+	
+
+	CP  = np.zeros((nrounds,numps*numps),dtype=np.int32)
+	for u1 in xrange(numps):
+		for u2 in xrange(numps):
+			col = u1*numps + u2			
+			CP[:t,col] = U1[:,u1] 
+			CP[t:,col] = U2[:,u2] 
+	return CP

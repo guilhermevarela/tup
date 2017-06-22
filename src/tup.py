@@ -8,10 +8,12 @@ import numpy as np
 import pandas as pd  
 import os 
  
-from solvers import RandomNaiveMatchingSolver, BipartiteMatchingSolverR
+# from solvers import RandomNaiveMatchingSolver, BipartiteMatchingSolverR
 from builders import travel_builder
 from utils import umpire_at, umpire2game, umpire2homevenue
-from umps import * 
+from umps import *
+import scipy.optimize as opt 
+
 
 class TUP(object):
     '''
@@ -39,32 +41,36 @@ class TUP(object):
         self.fixpenalty = fixpenalty
 
     def x(self, tup, D, S, d1, d2):
-        nrounds = self.nrounds
-        t = np.random.randint(1,nrounds-1)
-        
-        #Settings before optimization        
-        self.costs[t+1:,:]         = tup.costs[t+1:,:] 
-        self.U[t+1:,:]             = tup.U[t+1:,:]
-        self.violations[t+1:,:]    = tup.violations[t+1:,:]
-        self.penalties[t+1:,:]       = tup.penalties[t+1:,:]
-         
-        U = self.U
-        c = self.costs 
-        v = self.violations
-        p = self.penalties
+        nrounds, numps, _ = S.shape 
+        t = np.random.randint(1,nrounds)
         fixpenalty = self.fixpenalty
-        for t1 in xrange(t+1,nrounds):            
-            Tt  = travel_builder(D,S,U,t1)
-            solver = BipartiteMatchingSolverR(Tt, S, U, t1, d1, d2, fixpenalty)
-            # return Ia, Ij, c, v ,p      
-            UI, GI  = solver.solve()
+        # UX is the cartesian product
+        UX = umps2cartesian(self.U[:t,:], tup.U[t:,:])
+        VX3 = umps2violations3(S, UX)
+        VX4 = umps2violations4(S, UX, d1)
+        VX5 = umps2violations5(S, UX, d2)
+        TX = umps2travel(D, S, UX)
+        PX = TX * fixpenalty
 
+        # COMPUTES TXt, PXt for cut
+        TXt = np.hsplit(TX.sum(axis=0),numps)
+        PXt = np.hsplit(PX.sum(axis=0),numps)
 
+        print TXt 
+        print PXt 
+
+        # Hungarian algorithm
+        idumps, idgame = opt.linear_sum_assignment(TXt + PXt)
         
-        self.U = U 
-        self.costs = c 
-        self.violations = violations
-        self.penalties = penalties
+        #adjust to cross cartesian
+        idgamex =  idgame + np.arange(0,numps*numps, numps)
+        self.U  = UX[:,idgamex]    
+        self.V3 = VX3[:,idgamex]
+        self.V4 = VX4[:,idgamex]
+        self.V5 = VX5[:,idgamex]
+        self.T = TX[:,idgamex]
+        self.P = PX[:,idgamex]
+        
         return self
 
     def to_frame(self, D, S):
