@@ -55,6 +55,28 @@ def umpire2segment(S, U):
                 u2s[l] = [tuple(tuplelist)]                    
     return u2s  
 
+def umpire2game(U):
+    '''
+        TUP Solution reader @ https://benchmark.gent.cs.kuleuven.be/tup/en/my_submissions/
+    '''            
+    nrounds, numps = U.shape
+    G = np.zeros(U.shape,dtype=np.int32)
+    for r in xrange(nrounds):
+        for u in xrange(numps):
+            gameindex = U[r,u]-1
+            G[r,gameindex] = u+1 
+    return G        
+
+def umpire2homevenue(S, U):    
+    nrounds, numps = U.shape
+    HV = S[:,:,0]
+    U2H = np.zeros(U.shape,dtype=np.int32)
+    
+    for r in xrange(nrounds):
+        idr = U[r,:]-1
+        U2H[r,:] = HV[r,idr]
+    return U2H            
+
 def violations_3_counter(S, U):
     nrounds,numpires = U.shape
     nteams  = 2*numpires  

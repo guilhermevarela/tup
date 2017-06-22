@@ -6,6 +6,7 @@ Created on Jun 9, 2017
 from tup import TUP
 import numpy as np
 import signal
+import copy 
 
 ga_abort = False
 
@@ -46,30 +47,35 @@ def ga_crossover(D, S, d1, d2, population, replaceperc=0.15, verbose=True):
           
     newgeneration = []
     
-    goprint = False 
+    
     tries   = 0
-    while len(newgeneration) < ncrossover:
-        if (len(newgeneration) % 0.1*ncrossover == 0) & verbose & goprint:
-            print 'ga_crossover \t(%04d/%04d)\ttries\t05d%' % (len(newgeneration),ncrossover,tries)
-                
-                  
+    prevbest = copy.deepcopy(population[0]) 
+    while len(newgeneration) < ncrossover:                                  
         parents = np.random.choice(population,size=2,replace=False)
-        solx    = parents[0]
+        solx    = copy.deepcopy(parents[0])  
         solcopy = parents[1] 
             
         solx.x(solcopy, D, S, d1, d2)
 
         exists =  ga_exists(newgeneration,solx) | ga_exists(population,solx) 
-        if not exists:
-            goprint = True  
+        if not exists:  
             newgeneration.append(solx)
         tries   +=1
+        
     #replace the best 
     newgeneration   = ga_rank(newgeneration)    
     replacestart = len(population)-nreplace
     keepfinish   = nreplace
-    population[replacestart:] = newgeneration[0:keepfinish]
+    
+    fitnessbefore= ga_fitness(population, nreplace)
+    
+    population[replacestart:] = newgeneration[0:keepfinish]    
     population = ga_rank(population)
+
+    if prevbest.score() < population[0].score():
+        population = [prevbest] + population[:-1]
+    fitnessafter=ga_fitness(population, nreplace)
+    print "Fitness %d -> %d" % (int(fitnessbefore), int(fitnessafter))
 
     return population
 

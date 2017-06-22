@@ -10,7 +10,8 @@ import os
  
 from solvers import RandomNaiveMatchingSolver, BipartiteMatchingSolverR
 from builders import travel_builder
-from utils import umpire_at
+from utils import umpire_at, umpire2game, umpire2homevenue
+
 
 class TUP(object):
     '''
@@ -86,6 +87,44 @@ class TUP(object):
         filepath    = output_dir + ganame  
         df.to_csv(filepath, sep=',')
     
+    def export1(self, instancename, timestamp, ouput_dir=''):
+        # Exports to format in 
+        # https://benchmark.gent.cs.kuleuven.be/tup/en/my_submissions/
+        if not(ouput_dir):
+            output_dir = "../src/output/%s/%d/" %(instancename,timestamp)
+            if not os.path.exists(output_dir):
+                os.makedirs(output_dir)
+
+        U               = self.U
+        nrounds, numpires     =U.shape 
+        q1              = numpires
+        q2              = int(numpires/2)        
+        exportname      = '%s_%d_%d.txt' % (instancename,q1,q2)        
+        filepath        = output_dir + exportname 
+        G               = umpire2game(self.U)
+        expdata         = G.flatten()
+        l = nrounds*numpires
+        exportdf        = pd.DataFrame(data=expdata.reshape((1,l)))           
+        exportdf.to_csv(filepath, sep=',', header=False, index=False)                
+
+    def export2(self, S,  instancename, timestamp, ouput_dir=''):
+        # Exports to format in 
+        # https://benchmark.gent.cs.kuleuven.be/tup/en/my_submissions/
+        if not(ouput_dir):
+            output_dir = "../src/output/%s/%d/" %(instancename,timestamp)
+            if not os.path.exists(output_dir):
+                os.makedirs(output_dir)
+        
+        U = self.U
+        _, numpires=U.shape 
+        q1 = numpires
+        q2 = int(numpires/2)
+        exportname      = '%s_%d_%d.txt' % (instancename,q1, q2)        
+        filepath        = output_dir + exportname 
+        exportdata      = umpire2homevenue(S, U)        
+        exportdf        = pd.DataFrame(data=exportdata)           
+        exportdf.to_csv(filepath, sep=' ', header=False, index=False, encoding='utf-8')                
+
     def _violations_to_frame_(self, nrounds, numpires):
         umpires        = xrange(numpires) 
         columns        = ['C[%d,%d]'%(x+1,y+1) for x in umpires for y in umpires]        

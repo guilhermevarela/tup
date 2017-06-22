@@ -34,7 +34,7 @@ d2 = 0
 epochs = 0 
 replaceperc  = 0.15 
 npopulation = 500
-fixpenalty  = 1000
+fixpenalty  = 3000
 population  = ga_initialpopulation(npopulation, D, S, d1, d2, fixpenalty)
 
 fittest     = population[0]
@@ -43,7 +43,7 @@ fittest     = population[0]
 nfit = int(0.1 * npopulation ) 
 fitalpha  = 0.5
 tol = 3e-2
-maxepochs = 2e1
+maxepochs = 2e2
 stop_criteria = False
 fitmv = tol*1000
  
@@ -62,4 +62,5 @@ while not stop_criteria:
    
 fittest =  population[0]
 fittest.persist(D, S, epochs, d1, d2, instancename, timestamp)
+fittest.export2(S, instancename, timestamp)
   
