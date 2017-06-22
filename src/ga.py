@@ -5,43 +5,28 @@ Created on Jun 9, 2017
 '''
 from tup import TUP
 import numpy as np
-import signal
+
 import copy 
 
-ga_abort = False
 
-def ga_abort_individual(signum, frame):
-        print 'aborting individual ', signum
-        global ga_abort
-        ga_abort = True 
-
-def ga_initialpopulation(npopulation, D, S, d1, d2, fixcost, verbose=True):
+def ga_initialpopulation(npopulation, D, S, d1, d2, fixcost):
     population = []
     i = 0 
     tries = 0
-    while (i < npopulation):
-        tries +=1
-        if verbose & (tries % (0.1*npopulation) == 0 ):
+    for i in xrange(npopulation):
+        if (i % (0.1*npopulation) == 0 ):
             print "ga_initialpopulation\tcreated\t(%03d/%03d)\ttries\t%05d" % (i,npopulation, tries)
             
-        signal.signal(signal.SIGALRM, ga_abort_individual)
-        signal.alarm(5)                             
         sol = TUP(D,S,d1,d2,fixcost)
         
-        global ga_abort 
-        if not(ga_abort):
-            population.append(sol)
-            i+=1 
-        else: 
-            ga_abort = False    
-        signal.alarm(0)
+        population.append(sol)
+
         
-    population = ga_rank(population)
-    if verbose: 
-        print "ga_initialpopulation\t(%03d/%03d)" % (npopulation,npopulation)
+    population = ga_rank(population)    
+    print "ga_initialpopulation\t(%03d/%03d)" % (npopulation,npopulation)
     return  population     
 
-def ga_crossover(D, S, d1, d2, population, replaceperc=0.15, verbose=True):
+def ga_crossover(D, S, d1, d2, population, replaceperc=0.15):
     ncrossover = int(len(population)/2)
     nreplace   = int(len(population) * replaceperc)
           
@@ -74,8 +59,7 @@ def ga_crossover(D, S, d1, d2, population, replaceperc=0.15, verbose=True):
 
     if prevbest.score() < population[0].score():
         population = [prevbest] + population[:-1]
-    fitnessafter=ga_fitness(population, nreplace)
-    print "Fitness %d -> %d" % (int(fitnessbefore), int(fitnessafter))
+    fitnessafter=ga_fitness(population, nreplace)    
 
     return population
 
