@@ -16,7 +16,7 @@ from umps import umps2cartesian
 def publish_score(nfit, individualdecile, individualbest):    
     scoredecile = "{:,}".format(int(individualdecile.score()))
     scorebest = "{:,}".format(int(individualbest.score()))
-    distancebest = "{:,}".format(int(individualbest.costs.sum()))
+    distancebest = "{:,}".format(int(individualbest.travel()))
     msg = 'ga\tepoch\t%04d\ttop decile[%d]\t%s\t'
     msg +='top score\t%s\tBest distance\t%s'
     buff = msg % (epochs, nfit, scoredecile, scorebest, distancebest)
@@ -53,16 +53,16 @@ fitmv = tol*1000
 
 fittest.persist(D, S, epochs, d1, d2, instancename, timestamp)
 
-while not stop_criteria:
-    population = ga_crossover(D, S, d1, d2, population, replaceperc)
+# while not stop_criteria:
+#     population = ga_crossover(D, S, d1, d2, population, replaceperc)
 
-    fitscore        = ga_fitness(population, nfit)
-    stop_criteria   = (epochs > maxepochs) | (abs(fitscore - fitmv) < tol)
+#     fitscore        = ga_fitness(population, nfit)
+#     stop_criteria   = (epochs > maxepochs) | (abs(fitscore - fitmv) < tol)
 
-    publish_score(nfit, population[nfit-1], population[0])
-    fitmv = (fitalpha)*fitscore + (1-fitalpha)*fitmv
-    epochs +=1 
+#     publish_score(nfit, population[nfit-1], population[0])
+#     fitmv = (fitalpha)*fitscore + (1-fitalpha)*fitmv
+#     epochs +=1 
 
-fittest =  population[0]
-fittest.persist(D, S, epochs, d1, d2, instancename, timestamp)
-fittest.export2(S, instancename, timestamp)
+# fittest =  population[0]
+# fittest.persist(D, S, epochs, d1, d2, instancename, timestamp)
+# fittest.export2(S, instancename, timestamp)

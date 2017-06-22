@@ -49,7 +49,7 @@ def umps2violations3(S,U):
 	aux = np.zeros((numps*2, U.shape[1]))
 	umpsindex = np.arange(U.shape[1])
 
-	print aux.shape
+
 	for t in xrange(1,nrounds):
 		for u, g in enumerate(U[t,:]):
 			homeindex = H[t,g-1]-1
