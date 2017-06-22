@@ -89,9 +89,5 @@ def violations_3_counter(S, U):
             violations[ump, hometeam-1]+=1
     return  (violations.T == 0).sum(axis=0)         
              
-                        
-    
-    
-    
 
-
+    
