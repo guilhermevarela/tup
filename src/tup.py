@@ -28,13 +28,14 @@ class TUP(object):
         #constructs initial solution
         umpsindex = np.arange(numps)
         for t in xrange(nrounds):            
-            U[t,:] = np.random.choice(umpsindex, size=numps, replace=False)
-        
+            U[t,:] = np.random.choice(umpsindex, size=numps, replace=False)+1
+
+        self.U = U    
         self.V3 = umps2violations3(S, U)
         self.V4 = umps2violations4(S, U, d1)
         self.V5 = umps2violations5(S, U, d2)
         self.T = umps2travel(D, S, U)
-        self.P = T * fixpenalty
+        self.P = self.T * fixpenalty
         self.fixpenalty = fixpenalty
 
     def x(self, tup, D, S, d1, d2):

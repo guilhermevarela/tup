@@ -40,8 +40,8 @@ epochs = 0
 replaceperc = 0.15 
 npopulation = 500
 fixpenalty = 3000
-population = ga_initialpopulation(1, D, S, d1, d2, fixpenalty)
-fittest = population[0]
+population = ga_initialpopulation(npopulation, D, S, d1, d2, fixpenalty)
+
 
 
 # GA CROSSOVER 

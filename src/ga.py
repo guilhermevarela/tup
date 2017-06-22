@@ -13,9 +13,11 @@ def ga_initialpopulation(npopulation, D, S, d1, d2, fixcost, order=False):
   population = []
   i = 0 
   tries = 0
+  msg = "ga_initialpopulation\tcreated\t(%03d/%03d)\t"
   for i in xrange(npopulation):
       if (i % (0.1*npopulation) == 0 ):
-          print "ga_initialpopulation\tcreated\t(%03d/%03d)\ttries\t%05d" % (i,npopulation, tries)
+          buff = msg %  (i,npopulation)
+          print buff
           
       sol = TUP(D,S,d1,d2,fixcost)
       

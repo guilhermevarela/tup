@@ -21,13 +21,12 @@ def umps2adversaries(S, U):
 
 	'''	
 	#adversary team within schedule
-	A = S[:,:1]
+	A = S[:,:,1]
 	AU = np.zeros(A.shape,dtype=np.int32)	
 	
 	#Performs home venus adjusted to umps assignment
 	for r in xrange(A.shape[0]):
-		idr = U[r,:]-1
-		AU[r,:] = A[r,idr]
+		AU[r,:] = A[r,U[r,:]-1]
 	return AU	
 
 def umps2violations3(S,U):
