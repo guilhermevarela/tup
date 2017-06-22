@@ -57,7 +57,8 @@ class TUP(object):
         PXt = np.hsplit(PX.sum(axis=0),numps)
 
         # Hungarian algorithm
-        idumps, idgame = opt.linear_sum_assignment(TXt + PXt)
+        # idumps, idgame = opt.linear_sum_assignment(TXt + PXt)
+        idumps, idgame = opt.linear_sum_assignment(PXt)
         
         #adjust to cross cartesian
         idgamex =  idgame + np.arange(0,numps*numps, numps)
@@ -91,6 +92,7 @@ class TUP(object):
 
     def travel(self):    
         return self.T.sum()
+
     def persist(self,D, S, epochs, d1, d2, instancename, timestamp, ouput_dir=''):
         if not(ouput_dir):
             output_dir = "../src/output/%s/%d/" %(instancename,timestamp)
@@ -142,20 +144,7 @@ class TUP(object):
         exportdf.to_csv(filepath, sep=' ', header=False, index=False, encoding='utf-8')                
 
     
-    # def _violations_to_frame_(self, nrounds, numps):
-    #     umpires        = xrange(numps) 
-    #     columns        = ['C[%d,%d]'%(x+1,y+1) for x in umpires for y in umpires]        
-                
-    #     violations = np.array(self.violations)        
-
-    #     return pd.DataFrame(data=violations, columns=columns,index=xrange(nrounds))
-    # def _violations_to_frame_(self, nrounds, numps):
-    #     umpires        = xrange(numps) 
-    #     columns        = ['C[%d,%d]'%(x+1,y+1) for x in umpires for y in umpires]        
-                
-    #     violations = np.array(self.violations)        
-
-    #     return pd.DataFrame(data=violations, columns=columns,index=xrange(nrounds))
+    
     
     def _umps2frame_(self, S, nrounds, numps):                
         umpirecolumns      = ['Umpire#%d'%(x+1) for x in xrange(numps)]        
@@ -169,7 +158,7 @@ class TUP(object):
                 Uout[r,t]  =  '(%02d,%02d)' % tuple(tuplelist)
 
         return pd.DataFrame(data=Uout,columns=umpirecolumns,index=index)
-        
+
     def _violations2frame_(self, S, nrounds, numps):                
         V = np.concatenate((self.V3,self.V4,self.V5),axis=1)
         vcolumns = [] 
@@ -191,39 +180,5 @@ class TUP(object):
         tcolumns = ['T#%d'%(x+1) for x in xrange(numps)]                
         index    =xrange(nrounds)        
         
-
         return pd.DataFrame(data=T,columns=tcolumns,index=index)        
 
-    
-
-    
-    # def _umps2violation3_(self, S, nrounds, numps):                
-    #     v3columns = ['V3#%d'%(x+1) for x in xrange(numps)]        
-    #     index    =xrange(nrounds)        
-    #     return pd.DataFrame(data=self.V3,columns=v3columns,index=index)
-
-    # def _umps2violation4_(self, S, nrounds, numps):                
-    #     v4columns = ['V4#%d'%(x+1) for x in xrange(numps)]        
-    #     index    =xrange(nrounds)        
-    #     return pd.DataFrame(data=self.V3,columns=v3columns,index=index)        
-    #     return pd.DataFrame(data=Uout, columns=umpirecolumns,index=xrange(nrounds))                     
-    
-    # def _games_to_frame_(self,nrounds, numps):
-    #     gamescolumns      = ['Games #%d'%(x+1) for x in xrange(numps)]        
-    #     Gout              = np.zeros((nrounds, numps), dtype=np.int32)
-    #     for r  in xrange(nrounds):
-    #         Gout[r,:] = self.U[r,:]
-
-    #     return pd.DataFrame(data=Gout, columns=gamescolumns,index=xrange(nrounds))                     
-    # def _home_to_frame(self,S ,nrounds, numps):
-    #     home_cols        = ['Umpire#%d  @'%(x+1) for x in xrange(numps)]                 
-    #     home_data        = umpire_at(S, self.U, slice(0,nrounds))
-    #     return pd.DataFrame(data=home_data, columns=home_cols,index=xrange(nrounds))
-        
-    # def _costs_to_frame_(self, nrounds, numps) :
-    #     c                    = np.cumsum( self.costs )
-    #     cout    = np.empty((nrounds,1), dtype=object)
-    #     for r  in xrange(nrounds):
-    #         cout[r] = "{:,}".format(c[r]) 
-    #     columns       = ['D']        
-    #     return pd.DataFrame(data=cout, columns=columns,index=xrange(nrounds))                     

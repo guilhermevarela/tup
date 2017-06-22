@@ -34,8 +34,6 @@ def ga_crossover(D, S, d1, d2, population, replaceperc=0.15):
         
   newgeneration = []
   
-  
-  tries   = 0
   prevbest = copy.deepcopy(population[0]) 
   while len(newgeneration) < ncrossover:                                  
       parents = np.random.choice(population,size=2,replace=False)
@@ -47,9 +45,9 @@ def ga_crossover(D, S, d1, d2, population, replaceperc=0.15):
       exists =  ga_exists(newgeneration,solx) | ga_exists(population,solx) 
       if not exists:  
           newgeneration.append(solx)
-      tries   +=1
+
       
-  #replace the best 
+  # Replace the inferirior solutions in 
   newgeneration   = ga_rank(newgeneration)    
   replacestart = len(population)-nreplace
   keepfinish   = nreplace
@@ -62,8 +60,17 @@ def ga_crossover(D, S, d1, d2, population, replaceperc=0.15):
   if prevbest.score() < population[0].score():
       population = [prevbest] + population[:-1]
 
-  return population
+  return ga_rank(newgeneration)
 
+def ga_mutation(population, parentid, nreplace, nmutation):
+  # population, parentid, nreplace, nmutation
+  mutationid = np.random.choice(parentid[:nreplace],size=nmutation,replace=False)
+  populationid = np.array(map(id,population))
+  indexes = np.in1d(populationid, mutationid,assume_unique=True)
+  for i in indexes:
+    population[i].mutate()    
+
+  return population, populationid
 
 
 def ga_rank(population):
