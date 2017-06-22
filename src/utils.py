@@ -87,7 +87,7 @@ def violations_3_counter(S, U):
             gameindex = U[r,ump]-1          
             hometeam  = S[r,gameindex,0]
             violations[ump, hometeam-1]+=1
-    return  (violations == 0).sum(axis=0)         
+    return  (violations.T == 0).sum(axis=0)         
              
                         
     

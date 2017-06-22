@@ -38,24 +38,32 @@ class TUP(object):
         t = np.random.randint(1,nrounds-1)
         
         #Settings before optimization        
-        self.costs[t+1:]         = other_tupsolution.costs[t+1:] 
-        self.U[t+1:,:]          = other_tupsolution.U[t+1:,:]
-        self.violations[t+1:,:] = other_tupsolution.violations[t+1:,:]
-        self.penalties[t+1:]  = other_tupsolution.penalties[t+1:]
+        self.costs[t+1:,:]         = other_tupsolution.costs[t+1:,:] 
+        self.U[t+1:,:]             = other_tupsolution.U[t+1:,:]
+        self.violations[t+1:,:]    = other_tupsolution.violations[t+1:,:]
+        self.penalties[t+1:,:]       = other_tupsolution.penalties[t+1:,:]
          
         U = self.U
         c = self.costs 
+        v = self.violations
+        p = self.penalties
         fixpenalty = self.fixpenalty
         for t1 in xrange(t+1,nrounds):            
             Tt  = travel_builder(D,S,U,t1)
             solver = BipartiteMatchingSolverR(Tt, S, U, t1, d1, d2, fixpenalty)
-            UI, GI, ct = solver.solve()
+            # return Ia, Ij, c, v ,p      
+            UI, GI, ct1, vt1 ,pt1  = solver.solve()
             U[t1,UI] = (GI+1)
-            c[t1] = ct 
+            c[t1,:] = ct1 
+            print vt1
+            v[t1,:] = vt1 
+            p[t1,:] = pt1 
 
-        self.costs = c 
+        
         self.U = U 
-
+        self.costs = c 
+        self.violations = violations
+        self.penalties = penalties
         return self
 
     def to_frame(self, D, S):
