@@ -6,19 +6,10 @@ def umps2home(S, U):
 		umps2homevenues hometeams / homevenues given an umps assignment
 
 	'''	
-	# import code; code.interact(local=dict(globals(), **locals()))
 	#Home venues within schedule
 	nrounds, nseries = U.shape 
 	H = S[:,:,0]
-	# HU = np.zeros(U.shape,dtype=np.int32)	
-	#Performs home venus adjusted to umps assignment
-	# for r in xrange(U.shape[0]):		
-	# 	idr = U[r,:]-1
-	# 	HU[r,:] = H[r,idr]
-	# for t in xrange(H.shape[0]):
-	# 	for u, g in enumerate(U[t,:]):
-	# 		homeindex = H[t,g-1]-1
-	# 		HU[t, u] = homeindex
+
 	rows = np.tile(np.arange(nrounds).reshape((nrounds,1)),(1,nseries))
 	cols = U-1
 	return H[rows,cols]
@@ -32,13 +23,7 @@ def umps2adversaries(S, U):
 	#adversary team within schedule
 	nrounds, nseries = U.shape 
 	A = S[:,:,1]
-	# AU = np.zeros(U.shape,dtype=np.int32)	
-	
-	#Performs home venue adjusted to umps assignment
-	# for t in xrange(A.shape[0]):
-	# 	for u, g in enumerate(U[t,:]):
-	# 		advindex = A[t,g-1]-1
-	# 		AU[t, u] =advindex
+
 	rows = np.tile(np.arange(nrounds).reshape((nrounds,1)),(1,nseries))
 	cols = U-1
 	return A[rows,cols]
@@ -49,19 +34,13 @@ def umps2violations3(S,U):
 
 	'''	
 	H = umps2home(S, U)		
-	nrounds, numps, _ =  S.shape
-	nteams = 2*numps 
-	V3 = np.zeros(H.shape, dtype=np.int32)
-	aux = np.zeros((numps*2, U.shape[1]))
-	umpsindex = np.arange(U.shape[1])
+	teams = np.amax(H)
 
-
-	for t in xrange(1,nrounds):
-		for u, g in enumerate(U[t,:]):
-			homeindex = H[t,g-1]-1
-			aux[homeindex, u] +=1
-
-	V3[-1,:]= (aux == 0).sum(axis=0) 		
+	V3 = np.zeros(H.shape, dtype=np.int32) 
+	for h in xrange(H.shape[1]):
+		teamsvisited = np.unique(H[:,h])
+		V3[-1,h] = teams - len(teamsvisited)
+	
 	return V3 		
 
 def umps2violations4(S, U, q1):
@@ -70,26 +49,10 @@ def umps2violations4(S, U, q1):
 		umps2violations4 no umpire is in home site more then once in q1=numps-d1 periods
 
 	'''	
-	# nrounds, nseries = U.shape  
-	# numps = S.shape[1]
-
-	# H = umps2home(S,U)	
-	# V4 = np.zeros(U.shape, dtype=np.int32)
-
-	# for t in xrange(1,nrounds):
-	# 	y = max(t-q1+1,0)
-	# 	s = slice(y,t)
-	# 	# print "umps2violations4", t, y
-	# 	for n in xrange(nseries):			
-	# 		v4 =  (H[y,n] == H[t,n]).sum() 		
-	# 		V4[t,n] =  v4
-	# return V4 		
-
 	# Performs q1-1 shifts in order to compute V4
 	V4 = np.zeros(U.shape, dtype=np.int32)
 	H = umps2home(S,U)	
 	Q = H 
-	# import code; code.interact(local=dict(globals(), **locals()))
 	for q in xrange(1,q1):
 		Q = np.roll(Q, 1, axis=0) 
 		Q[:q,:]=-1
@@ -103,6 +66,7 @@ def umps2violations5(S, U, q2):
 		umps2violations5 no umpire sees a team more then once in q2=int(numps/2)-d2 consecutive slots
 
 	'''	
+	# Performs q2-1 shifts in order to compute V5
 	V5 = np.zeros(U.shape, dtype=np.int32)
 	H = umps2home(S,U)	
 	A = umps2adversaries(S,U)	
@@ -128,7 +92,7 @@ def umps2travel(D, S, U):
 	nrounds, numps = U.shape 
 	H = umps2home(S, U)
 	T = np.zeros(H.shape, dtype=np.int32)
-	
+
 	for t in xrange(1,nrounds):
 		origin = H[t-1,:]
 		destination = H[t,:]

@@ -35,7 +35,7 @@ def ga_crossover(D, S, q1, q2, population, replaceperc=0.15):
         
   newgeneration = []
   
-  # prevbest = copy.deepcopy(population[0]) 
+
   while len(newgeneration) < ncrossover:                                  
       parents = np.random.choice(population,size=2,replace=False)
       solx    = copy.deepcopy(parents[0])  

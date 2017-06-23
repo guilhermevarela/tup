@@ -15,8 +15,6 @@ class TUP(object):
     '''
     TUP solution
     '''
-
-
     def __init__(self, D, S, q1, q2, fixpenalty):
         #Defines variables 
         nrounds, numps, _ = S.shape 
@@ -31,11 +29,8 @@ class TUP(object):
         self.U = U    
         
         self.V3 = umps2violations3(S, U)
-        # self.V3 = np.zeros(U.shape, dtype=np.int32)
         self.V4 = umps2violations4(S, U, q1)
-        # import code; code.interact(local=dict(globals(), **locals()))
         self.V5 = umps2violations5(S, U, q2)        
-        # self.V5 = np.zeros(U.shape, dtype=np.int32)
         
 
         self.T = umps2travel(D, S, U)
@@ -49,17 +44,12 @@ class TUP(object):
         # UX is the cartesian product
         UX = umps2cartesian(self.U[:t,:], tup.U[t:,:])
         VX3 = umps2violations3(S, UX)
-        # VX3 = np.zeros(UX.shape, dtype=np.int32)
         VX4 = umps2violations4(S, UX, q1)
         VX5 = umps2violations5(S, UX, q2)
-        # VX5 = np.zeros(UX.shape, dtype=np.int32)
         TX = umps2travel(D, S, UX)
         PX = (VX3 + VX4 + VX5) * fixpenalty
 
         # COMPUTES TXt, PXt for cut
-        
-        # TXt = np.hsplit(TX.sum(axis=0),numps)
-        # PXt = np.hsplit(PX.sum(axis=0),numps)
         TXt = TX[t,:].reshape((numps,numps))
         PXt = (PX[t:,:].sum(axis=0)).reshape((numps,numps))
 
