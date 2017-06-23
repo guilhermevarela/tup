@@ -7,9 +7,9 @@ import numpy as np
 import pandas as pd  
 import re 
 
-def instance_reader(instancename='umps8'):
-    path  = './instances/'
-    filepath = path + instancename + ".txt"
+def instance_reader(instancename='umps8.txt', path= ''):
+    # path  = './instances/'
+    filepath = path + instancename
     
     matcher_nteams       = lambda x : re.match(r'nTeams=(.[^;]*)', x )
     searcher_distance    = lambda x : re.search(r'(dist=|dist =)', x)
