@@ -33,12 +33,13 @@ class TUP(object):
             U[t,:] = np.random.choice(umpsindex, size=numps, replace=False)+1
 
         self.U = U    
-        self.V3 = np.zeros(U.shape, dtype=np.int32)
-        # self.V3 = umps2violations3(S, U)
+        
+        self.V3 = umps2violations3(S, U)
+        # self.V3 = np.zeros(U.shape, dtype=np.int32)
         self.V4 = umps2violations4(S, U, d1)
-        # self.V5 = umps2violations5(S, U, d2)        
-        self.V5 = np.zeros(U.shape, dtype=np.int32)
-        # self.V5 = umps2violations5(S, U, d2)
+        self.V5 = umps2violations5(S, U, d2)        
+        # self.V5 = np.zeros(U.shape, dtype=np.int32)
+        
 
         self.T = umps2travel(D, S, U)
         self.P = (self.V3 + self.V4 + self.V5) * fixpenalty
@@ -51,15 +52,21 @@ class TUP(object):
         # UX is the cartesian product
         UX = umps2cartesian(self.U[:t,:], tup.U[t:,:])
         VX3 = umps2violations3(S, UX)
+        # VX3 = np.zeros(UX.shape, dtype=np.int32)
         VX4 = umps2violations4(S, UX, d1)
         VX5 = umps2violations5(S, UX, d2)
+        # VX5 = np.zeros(UX.shape, dtype=np.int32)
         TX = umps2travel(D, S, UX)
         PX = (VX3 + VX4 + VX5) * fixpenalty
 
         # COMPUTES TXt, PXt for cut
-        TXt = np.hsplit(TX.sum(axis=0),numps)
-        PXt = np.hsplit(PX.sum(axis=0),numps)
+        
+        # TXt = np.hsplit(TX.sum(axis=0),numps)
+        # PXt = np.hsplit(PX.sum(axis=0),numps)
+        TXt = TX[t,:].reshape((numps,numps))
+        PXt = (PX[t:,:].sum(axis=0)).reshape((numps,numps))
 
+        import code; code.interact(local=dict(globals(), **locals()))
         # Hungarian algorithm
         idumps, idgame = opt.linear_sum_assignment(TXt + PXt)
 
