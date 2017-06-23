@@ -33,9 +33,13 @@ class TUP(object):
             U[t,:] = np.random.choice(umpsindex, size=numps, replace=False)+1
 
         self.U = U    
-        self.V3 = umps2violations3(S, U)
+        self.V3 = np.zeros(U.shape, dtype=np.int32)
+        # self.V3 = umps2violations3(S, U)
         self.V4 = umps2violations4(S, U, d1)
-        self.V5 = umps2violations5(S, U, d2)
+        # self.V5 = umps2violations5(S, U, d2)        
+        self.V5 = np.zeros(U.shape, dtype=np.int32)
+        # self.V5 = umps2violations5(S, U, d2)
+
         self.T = umps2travel(D, S, U)
         self.P = (self.V3 + self.V4 + self.V5) * fixpenalty
         self.fixpenalty = fixpenalty

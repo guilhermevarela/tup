@@ -82,7 +82,7 @@ def umps2violations4(S,U,d1):
 		for n in xrange(nseries):
 			u = int(n/numps)
 			v4 =  (H[y,u] == H[t,u]).sum() 		
-			V4[t,u] =  v4
+			V4[t,n] =  v4
 	return V4 		
 
 def umps2violations5(S,U,d2):
@@ -104,7 +104,7 @@ def umps2violations5(S,U,d2):
 			u = int(n/numps)
 			home =  (H[s,u] == H[t,u]).sum() +  (A[s,u] == H[t,u]).sum()
 			adv  =  (H[s,u] == A[t,u]).sum() +  (A[s,u] == A[t,u]).sum()
-			V5[t,u] =  home + adv 
+			V5[t,n] =  home + adv 
 	return V5
 
 def umps2travel(D, S, U):
