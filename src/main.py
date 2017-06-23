@@ -7,12 +7,8 @@ import numpy as np
 import pandas as pd  
 import readers as rd  
 import os
-# import timeit
-import copy
-# from builders       import schedule_builder
-from utils import get_timestamp, get_populationid, get_schedule 
 
-# from ga import ga_initialpopulation,ga_crossover, ga_fitness, ga_mutation
+from utils import *
 from ga import *
 
 def publish_score(nfit, individualdecile, individualbest):    
