@@ -128,6 +128,7 @@ def umps2travel(D, S, U):
 	nrounds, numps = U.shape 
 	H = umps2home(S, U)
 	T = np.zeros(H.shape, dtype=np.int32)
+	
 	for t in xrange(1,nrounds):
 		origin = H[t-1,:]
 		destination = H[t,:]

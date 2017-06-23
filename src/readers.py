@@ -12,7 +12,7 @@ def instance_reader(instancename='umps8'):
     filepath = path + instancename + ".txt"
     
     matcher_nteams       = lambda x : re.match(r'nTeams=(.[^;]*)', x )
-    searcher_distance    = lambda x : re.search(r'dist=', x)
+    searcher_distance    = lambda x : re.search(r'(dist=|dist =)', x)
     searcher_opponents   = lambda x : re.search(r'opponents=', x)
     matcher_array        = lambda x : re.search(r'\[(.*)\]', x)
     
@@ -23,11 +23,14 @@ def instance_reader(instancename='umps8'):
     oppmtrx=[]
     with open(filepath, 'r') as f: 
         for line in f:
+            print searchdist
             if searchdist:
                 matched = matcher_array(line)  
+                print matched 
                 if matched:
                     strarray = matched.group(1).split(' ')
                     strarray = [x for x in strarray if x] 
+                    print [int(x) for x in strarray]
                     distmtrx.append( [int(x) for x in strarray])                     
                 else:
                     searchdist = False  
@@ -49,7 +52,7 @@ def instance_reader(instancename='umps8'):
                 dist = searcher_distance(line)
                 if dist:
                     searchdist = True
-                else: 
+                else:                     
                     opp = searcher_opponents(line)
                     if opp: 
                         searchopp = True 

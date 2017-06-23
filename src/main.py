@@ -23,11 +23,15 @@ def publish_score(nfit, individualdecile, individualbest):
 if __name__ == '__main__':
     pass
 
-# instancename = 'umps8'
-instancename = 'umps4'
-# instancename = 'umps6'
+# instancename = 'umps14'
+# instancename = 'umps10C'
+# instancename = 'umps4'
+# instancename = 'umps12'
+instancename = 'umps6'
 
 nteams, D, opponents = rd.instance_reader(instancename)
+# import code; code.interact(local=dict(globals(), **locals()))
+    
 S = get_schedule(opponents)
 numps = int(nteams/2)
 
@@ -41,7 +45,7 @@ epochs = 0
 replaceperc = 0.15 
 mutateperc  = 0.05
 npopulation = 500
-fixpenalty = 5000
+fixpenalty = 13000
 population = ga_initialpopulation(npopulation, D, S, q1, q2, fixpenalty)
 parentid = get_populationid(population)
 timestamp = get_timestamp()
