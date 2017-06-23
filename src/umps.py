@@ -70,20 +70,32 @@ def umps2violations4(S, U, q1):
 		umps2violations4 no umpire is in home site more then once in q1=numps-d1 periods
 
 	'''	
-	nrounds, nseries = U.shape  
-	numps = S.shape[1]
+	# nrounds, nseries = U.shape  
+	# numps = S.shape[1]
 
-	H = umps2home(S,U)	
+	# H = umps2home(S,U)	
+	# V4 = np.zeros(U.shape, dtype=np.int32)
+
+	# for t in xrange(1,nrounds):
+	# 	y = max(t-q1+1,0)
+	# 	s = slice(y,t)
+	# 	# print "umps2violations4", t, y
+	# 	for n in xrange(nseries):			
+	# 		v4 =  (H[y,n] == H[t,n]).sum() 		
+	# 		V4[t,n] =  v4
+	# return V4 		
+
+	# Performs q1-1 shifts in order to compute V4
 	V4 = np.zeros(U.shape, dtype=np.int32)
+	H = umps2home(S,U)	
+	Q = H 
+	# import code; code.interact(local=dict(globals(), **locals()))
+	for q in xrange(1,q1):
+		Q = np.roll(Q, 1, axis=0) 
+		Q[:q,:]=-1
+		V4 += (H == Q).astype('int')
+	return V4 	
 
-	for t in xrange(1,nrounds):
-		y = max(t-q1+1,0)
-		s = slice(y,t)
-		# print "umps2violations4", t, y
-		for n in xrange(nseries):			
-			v4 =  (H[y,n] == H[t,n]).sum() 		
-			V4[t,n] =  v4
-	return V4 		
 
 def umps2violations5(S, U, q2):
 	'''
@@ -91,20 +103,20 @@ def umps2violations5(S, U, q2):
 		umps2violations5 no umpire sees a team more then once in q2=int(numps/2)-d2 consecutive slots
 
 	'''	
-	nrounds, nseries = U.shape  
-	numps=  S.shape[1] 
-	H = umps2home(S,U)
-	A = umps2adversaries(S,U)	
-	
 	V5 = np.zeros(U.shape, dtype=np.int32)
-	for t in xrange(1,nrounds):
-		y = max(t-q2+1,0)
-		s = slice(y,t)
-		for n in xrange(nseries):
-			u = int(n/numps)
-			home =  (H[s,u] == H[t,u]).sum() +  (A[s,u] == H[t,u]).sum()
-			adv  =  (H[s,u] == A[t,u]).sum() +  (A[s,u] == A[t,u]).sum()
-			V5[t,n] =  home + adv 
+	H = umps2home(S,U)	
+	A = umps2adversaries(S,U)	
+	QH = H
+	QA = A 
+	for q in xrange(1,q2):
+		#Compare with previous period
+		QH = np.roll(QH, 1, axis=0) 
+		QA = np.roll(QA, 1, axis=0) 
+		#Ignores first line - which was rotated
+		QH[0,:]=-1
+		QA[0,:]=-1
+		V5 += (H == QH).astype('int') + (A == QA).astype('int') 
+
 	return V5
 
 def umps2travel(D, S, U):

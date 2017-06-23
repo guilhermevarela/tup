@@ -63,7 +63,7 @@ class TUP(object):
         TXt = TX[t,:].reshape((numps,numps))
         PXt = (PX[t:,:].sum(axis=0)).reshape((numps,numps))
 
-        # import code; code.interact(local=dict(globals(), **locals()))
+        
         # Hungarian algorithm
         idumps, idgame = opt.linear_sum_assignment(TXt + PXt)
 
