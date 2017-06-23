@@ -7,9 +7,10 @@ import numpy as np
 import pandas as pd  
 import readers as rd  
 import os
-import timeit
-
-from builders       import schedule_builder
+# import timeit
+import copy
+# from builders       import schedule_builder
+from utils import get_timestamp, get_populationid, get_schedule 
 
 from ga import ga_initialpopulation,ga_crossover, ga_fitness, ga_mutation
 
@@ -22,20 +23,14 @@ def publish_score(nfit, individualdecile, individualbest):
     buff = msg % (epochs, nfit, scoredecile, scorebest, distancebest)
     print buff
 
-def population_id(population):
-    return map(id, population)
-
-
-
 if __name__ == '__main__':
-
     pass
 
 instancename = 'umps8'
 nteams, D, opponents = rd.instance_reader(instancename)
-S = schedule_builder(opponents)
+S = get_schedule(opponents)
 
-timestamp = int(timeit.time.time())
+
 
 ### GA INITIAL POPULATION
 d1 = 0
@@ -43,40 +38,55 @@ d2 = 0
 epochs = 0
 replaceperc = 0.15 
 mutateperc  = 0.05
-npopulation = 500
-fixpenalty = 10000
+npopulation = 1
+fixpenalty = 5000
 population = ga_initialpopulation(npopulation, D, S, d1, d2, fixpenalty)
+parentid = get_populationid(population)
+timestamp = get_timestamp()
 fittest = population[0]
 
-# GA CROSSOVER 
-nfit = int(0.1 * npopulation ) 
-fitalpha  = 0.5
-tol = 3e-2
-maxepochs = 2e1
-stop_criteria = False
-fitmv = tol*1000
-nreplace = int(npopulation * replaceperc)
-nmutate = int(npopulation * mutateperc)
+print fittest.score()
 
-fittest.persist(D, S, epochs, d1, d2, instancename, timestamp)
-
-populationid = np.array(map(id, population))
-while not stop_criteria:
-     # preserve ids of the individuals for mutations
-    population = ga_crossover(D, S, d1, d2, population, replaceperc)
-
-    population = ga_mutation(population, populationid, nreplace, nmutate )
+print D
+print D.max()
+print fittest.V3.sum() + fittest.V4.sum() + fittest.V5.sum()
+print (fittest.V3.sum() + fittest.V4.sum() + fittest.V5.sum())*fixpenalty 
+print fittest.P.sum()
+print fittest.score()
 
 
 
 
-    fitscore        = ga_fitness(population, nfit)
-    stop_criteria   = (epochs > maxepochs) | (abs(fitscore - fitmv) < tol)
+#GA CROSSOVER 
+# nfit = int(0.1 * npopulation ) 
+# fitalpha  = 0.5
+# tol = 3e-2
+# maxepochs = 2e1
+# stop_criteria = False
+# fitmv = tol*1000
+# nreplace = int(npopulation * replaceperc)
+# nmutate = int(npopulation * mutateperc)
 
-    publish_score(nfit, population[nfit-1], population[0])
-    fitmv = (fitalpha)*fitscore + (1-fitalpha)*fitmv
-    epochs +=1 
+# fittest.persist(D, S, epochs, d1, d2, instancename, timestamp)
+# publish_score(nfit, population[nfit-1], fittest)
 
-fittest =  population[0]
-fittest.persist(D, S, epochs, d1, d2, instancename, timestamp)
-fittest.export2(S, instancename, timestamp)
+# while not stop_criteria:
+#      # preserve ids of the individuals for mutations
+#     population = ga_crossover(D, S, d1, d2, population, replaceperc)
+
+#     population, parentid = ga_mutation(D, S, d1, d2, population, parentid, nreplace, nmutate )
+
+
+
+#     epochs +=1 
+#     fitscore        = ga_fitness(population, nfit)
+#     stop_criteria   = (epochs > maxepochs) | (abs(fitscore - fitmv) < tol)
+
+#     publish_score(nfit, population[nfit-1], population[0])
+#     fitmv = (fitalpha)*fitscore + (1-fitalpha)*fitmv
+    
+
+# fittest =  population[0]
+# publish_score(nfit, population[nfit-1], fittest)
+# fittest.persist(D, S, epochs, d1, d2, instancename, timestamp)
+# fittest.export2(S, instancename, timestamp)

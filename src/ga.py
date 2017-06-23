@@ -9,23 +9,23 @@ import numpy as np
 import copy
 
 
-def ga_initialpopulation(npopulation, D, S, d1, d2, fixcost, order=False):
+def ga_initialpopulation(npopulation, D, S, d1, d2, fixpenalty, order=False):
   population = []
   i = 0 
-  tries = 0
+  
   msg = "ga_initialpopulation\tcreated\t(%03d/%03d)\t"
   for i in xrange(npopulation):
       if (i % (0.1*npopulation) == 0 ):
           buff = msg %  (i,npopulation)
           print buff
           
-      sol = TUP(D,S,d1,d2,fixcost)
+      sol = TUP(D,S,d1,d2,fixpenalty)
       
       population.append(sol)
       
-  if order:        
-      population = ga_rank(population)    
-  print "ga_initialpopulation\t(%03d/%03d)" % (npopulation,npopulation)
+  
+  population = ga_rank(population)    
+  print msg % (npopulation,npopulation)
   return  population     
 
 def ga_crossover(D, S, d1, d2, population, replaceperc=0.15):
@@ -34,7 +34,7 @@ def ga_crossover(D, S, d1, d2, population, replaceperc=0.15):
         
   newgeneration = []
   
-  prevbest = copy.deepcopy(population[0]) 
+  # prevbest = copy.deepcopy(population[0]) 
   while len(newgeneration) < ncrossover:                                  
       parents = np.random.choice(population,size=2,replace=False)
       solx    = copy.deepcopy(parents[0])  
@@ -48,7 +48,7 @@ def ga_crossover(D, S, d1, d2, population, replaceperc=0.15):
 
       
   # Replace the inferirior solutions in 
-  newgeneration   = ga_rank(newgeneration)    
+  newgeneration = ga_rank(newgeneration)    
   replacestart = len(population)-nreplace
   keepfinish   = nreplace
   
@@ -57,28 +57,36 @@ def ga_crossover(D, S, d1, d2, population, replaceperc=0.15):
   population[replacestart:] = newgeneration[0:keepfinish]    
   population = ga_rank(population)
 
-  if prevbest.score() < population[0].score():
-      population = [prevbest] + population[:-1]
+  return population
 
-  return ga_rank(newgeneration)
-
-def ga_mutation(population, parentid, nreplace, nmutation):
+def ga_mutation(D, S, d1, d2, population, parentid, nreplace, nmutation):
   # population, parentid, nreplace, nmutation
   mutationid = np.random.choice(parentid[:nreplace],size=nmutation,replace=False)
   populationid = np.array(map(id,population))
   indexes = np.in1d(populationid, mutationid,assume_unique=True)
   for i in indexes:
-    population[i].mutate()    
+    population[i].mutate(D, S, d1, d2)    
 
+  population, populationid = ga_rank(population, populationid)
+  
   return population, populationid
 
 
-def ga_rank(population):
+def ga_rank(population, populationid=None):
   '''
     Performs descending fitness order
   '''
-  population.sort(key=lambda x : x.score())    
-  return population
+  
+  if populationid is None: 
+    population.sort(key=lambda x : x.score())
+    return population
+  else:     
+    # sorts populationid based on population keys
+    populationid = [y for (x,y) in sorted(zip(population, populationid), key=lambda t : t[0].score())]
+    population.sort(key=lambda x : x.score())    
+
+    return population, populationid
+  
 
 def ga_exists(population, solution):     
   duplicates = filter(lambda x : x.score() == solution.score(), population)

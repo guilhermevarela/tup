@@ -9,8 +9,8 @@ import pandas as pd
 import os 
  
 # from solvers import RandomNaiveMatchingSolver, BipartiteMatchingSolverR
-from builders import travel_builder
-from utils import umpire_at, umpire2game, umpire2homevenue
+# from builders import travel_builder
+# from utils import umpire_at, umpire2game, umps2home
 from umps import *
 import scipy.optimize as opt 
 
@@ -57,9 +57,9 @@ class TUP(object):
         PXt = np.hsplit(PX.sum(axis=0),numps)
 
         # Hungarian algorithm
-        # idumps, idgame = opt.linear_sum_assignment(TXt + PXt)
-        idumps, idgame = opt.linear_sum_assignment(PXt)
-        
+        idumps, idgame = opt.linear_sum_assignment(TXt + PXt)
+
+
         #adjust to cross cartesian
         idgamex =  idgame + np.arange(0,numps*numps, numps)
         self.U  = UX[:,idgamex]    
@@ -70,6 +70,25 @@ class TUP(object):
         self.P = PX[:,idgamex]
         
         return self
+
+    def mutate(self, D, S, d1, d2):
+        U = self.U
+        fixpenalty = self.fixpenalty
+
+
+        nrounds, numps = U.shape
+        tmutation = np.random.choice(np.arange(nrounds), size=1) 
+        ujmutation = np.random.choice(np.arange(numps), size=2, replace=False) 
+        uimutation = np.roll(ujmutation, 1)
+
+        
+        U[tmutation,uimutation] = U[tmutation,ujmutation]
+        
+        self.V3 = umps2violations3(S, U)
+        self.V4 = umps2violations4(S, U, d1)
+        self.V5 = umps2violations5(S, U, d2)
+        self.T  = umps2travel(D, S, U)
+        self.P  = (self.V3 + self.V4 + self.V5) * fixpenalty
 
     def to_frame(self, D, S):
         '''
@@ -87,7 +106,7 @@ class TUP(object):
 
         return df 
 
-    def score(self):
+    def score(self):        
         return self.P.sum() + self.T.sum()
 
     def travel(self):    
@@ -139,7 +158,7 @@ class TUP(object):
         q2 = int(numps/2)
         exportname      = '%s_%d_%d.txt' % (instancename,q1, q2)        
         filepath        = output_dir + exportname 
-        exportdata      = umpire2homevenue(S, U)        
+        exportdata      = umps2home(S, U)        
         exportdf        = pd.DataFrame(data=exportdata)           
         exportdf.to_csv(filepath, sep=' ', header=False, index=False, encoding='utf-8')                
 
