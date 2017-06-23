@@ -8,6 +8,7 @@ import numpy as np
 
 import copy
 
+gl_fittest = None 
 
 def ga_initialpopulation(npopulation, D, S, d1, d2, fixpenalty, order=False):
   population = []
@@ -101,3 +102,21 @@ def ga_exists(population, solution):
 def ga_fitness(population, nbest): 
   return np.array(map(lambda x : x.score(), population[:nbest])).mean()
 
+
+def ga_fittest_store(population):
+  '''
+    Stores a deepcopy  of the fittest individual
+  '''
+  global gl_fittest
+  gl_fittest = copy.deepcopy(population[0])  
+  return gl_fittest
+
+def ga_fittest_recall(population, populationid): 
+  '''
+    Performs replacement only if the new fitness function is less then the parent's 
+  '''
+  global gl_fittest
+  if gl_fittest.score() < population[0].score():
+    population = [gl_fittest] + population[:-1]
+    populationid = [id(gl_fittest)] + populationid[:-1]
+  return population, populationid  
