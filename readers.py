@@ -8,7 +8,7 @@ import pandas as pd
 import re 
 
 def instance_reader(instancename='umps8'):
-    path  = '../src/instances/'
+    path  = './instances/'
     filepath = path + instancename + ".txt"
     
     matcher_nteams       = lambda x : re.match(r'nTeams=(.[^;]*)', x )
