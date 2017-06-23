@@ -77,8 +77,9 @@ def umps2violations4(S,U,d1):
 	V4 = np.zeros(U.shape, dtype=np.int32)
 
 	for t in xrange(1,nrounds):
-		y = max(t-(numps-d1),0)
+		y = max(t-(numps-d1)+1,0)
 		s = slice(y,t)
+		# print "umps2violations4", t, y
 		for n in xrange(nseries):			
 			v4 =  (H[y,n] == H[t,n]).sum() 		
 			V4[t,n] =  v4
@@ -97,7 +98,7 @@ def umps2violations5(S,U,d2):
 	
 	V5 = np.zeros(U.shape, dtype=np.int32)
 	for t in xrange(1,nrounds):
-		y = max(t-(int(numps/2)-d2),0)
+		y = max(t-(int(numps/2)-d2)+1,0)
 		s = slice(y,t)
 		for n in xrange(nseries):
 			u = int(n/numps)

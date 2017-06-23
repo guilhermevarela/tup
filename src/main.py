@@ -23,8 +23,8 @@ def publish_score(nfit, individualdecile, individualbest):
 if __name__ == '__main__':
     pass
 
-# instancename = 'umps8'
-instancename = 'umps4'
+instancename = 'umps8'
+# instancename = 'umps4'
 
 nteams, D, opponents = rd.instance_reader(instancename)
 S = get_schedule(opponents)
@@ -38,7 +38,7 @@ epochs = 0
 replaceperc = 0.15 
 mutateperc  = 0.05
 npopulation = 500
-fixpenalty = 3000
+fixpenalty = 5000
 population = ga_initialpopulation(npopulation, D, S, d1, d2, fixpenalty)
 parentid = get_populationid(population)
 timestamp = get_timestamp()
@@ -49,7 +49,7 @@ fittest = population[0]
 nfit = int(0.1 * npopulation ) 
 fitalpha  = 0.5
 tol = 3e-2
-maxepochs = 2e1
+maxepochs = 1e2
 stop_criteria = False
 fitmv = tol*1000
 nreplace = int(npopulation * replaceperc)

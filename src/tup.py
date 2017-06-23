@@ -37,6 +37,7 @@ class TUP(object):
         self.V3 = umps2violations3(S, U)
         # self.V3 = np.zeros(U.shape, dtype=np.int32)
         self.V4 = umps2violations4(S, U, d1)
+        # import code; code.interact(local=dict(globals(), **locals()))
         self.V5 = umps2violations5(S, U, d2)        
         # self.V5 = np.zeros(U.shape, dtype=np.int32)
         
@@ -66,13 +67,14 @@ class TUP(object):
         TXt = TX[t,:].reshape((numps,numps))
         PXt = (PX[t:,:].sum(axis=0)).reshape((numps,numps))
 
-        import code; code.interact(local=dict(globals(), **locals()))
+        # import code; code.interact(local=dict(globals(), **locals()))
         # Hungarian algorithm
         idumps, idgame = opt.linear_sum_assignment(TXt + PXt)
 
 
         #adjust to cross cartesian
         idgamex =  idgame + np.arange(0,numps*numps, numps)
+
         self.U  = UX[:,idgamex]    
         self.V3 = VX3[:,idgamex]
         self.V4 = VX4[:,idgamex]
