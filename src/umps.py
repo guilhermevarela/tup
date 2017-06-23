@@ -64,10 +64,10 @@ def umps2violations3(S,U):
 	V3[-1,:]= (aux == 0).sum(axis=0) 		
 	return V3 		
 
-def umps2violations4(S,U,d1):
+def umps2violations4(S, U, q1):
 	'''
 
-		umps2violations4 no umpire is in home site more then once in numps-d1 periods
+		umps2violations4 no umpire is in home site more then once in q1=numps-d1 periods
 
 	'''	
 	nrounds, nseries = U.shape  
@@ -77,7 +77,7 @@ def umps2violations4(S,U,d1):
 	V4 = np.zeros(U.shape, dtype=np.int32)
 
 	for t in xrange(1,nrounds):
-		y = max(t-(numps-d1)+1,0)
+		y = max(t-q1+1,0)
 		s = slice(y,t)
 		# print "umps2violations4", t, y
 		for n in xrange(nseries):			
@@ -85,10 +85,10 @@ def umps2violations4(S,U,d1):
 			V4[t,n] =  v4
 	return V4 		
 
-def umps2violations5(S,U,d2):
+def umps2violations5(S, U, q2):
 	'''
 
-		umps2violations5 no umpire sees a team more then once in int(numps/2)-d2 consecutive slots
+		umps2violations5 no umpire sees a team more then once in q2=int(numps/2)-d2 consecutive slots
 
 	'''	
 	nrounds, nseries = U.shape  
@@ -98,7 +98,7 @@ def umps2violations5(S,U,d2):
 	
 	V5 = np.zeros(U.shape, dtype=np.int32)
 	for t in xrange(1,nrounds):
-		y = max(t-(int(numps/2)-d2)+1,0)
+		y = max(t-q2+1,0)
 		s = slice(y,t)
 		for n in xrange(nseries):
 			u = int(n/numps)

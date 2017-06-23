@@ -7,21 +7,17 @@ Created on Jun 12, 2017
 import numpy as np
 import pandas as pd  
 import os 
- 
-# from solvers import RandomNaiveMatchingSolver, BipartiteMatchingSolverR
-# from builders import travel_builder
-# from utils import umpire_at, umpire2game, umps2home
 from umps import *
 import scipy.optimize as opt 
 
 
 class TUP(object):
     '''
-    TUP solution stores d1, d2
+    TUP solution
     '''
 
 
-    def __init__(self, D, S, d1, d2, fixpenalty):
+    def __init__(self, D, S, q1, q2, fixpenalty):
         #Defines variables 
         nrounds, numps, _ = S.shape 
 
@@ -36,9 +32,9 @@ class TUP(object):
         
         self.V3 = umps2violations3(S, U)
         # self.V3 = np.zeros(U.shape, dtype=np.int32)
-        self.V4 = umps2violations4(S, U, d1)
+        self.V4 = umps2violations4(S, U, q1)
         # import code; code.interact(local=dict(globals(), **locals()))
-        self.V5 = umps2violations5(S, U, d2)        
+        self.V5 = umps2violations5(S, U, q2)        
         # self.V5 = np.zeros(U.shape, dtype=np.int32)
         
 
@@ -46,7 +42,7 @@ class TUP(object):
         self.P = (self.V3 + self.V4 + self.V5) * fixpenalty
         self.fixpenalty = fixpenalty
 
-    def x(self, tup, D, S, d1, d2):
+    def x(self, tup, D, S, q1, q2):
         nrounds, numps, _ = S.shape 
         t = np.random.randint(1,nrounds)
         fixpenalty = self.fixpenalty
@@ -54,8 +50,8 @@ class TUP(object):
         UX = umps2cartesian(self.U[:t,:], tup.U[t:,:])
         VX3 = umps2violations3(S, UX)
         # VX3 = np.zeros(UX.shape, dtype=np.int32)
-        VX4 = umps2violations4(S, UX, d1)
-        VX5 = umps2violations5(S, UX, d2)
+        VX4 = umps2violations4(S, UX, q1)
+        VX5 = umps2violations5(S, UX, q2)
         # VX5 = np.zeros(UX.shape, dtype=np.int32)
         TX = umps2travel(D, S, UX)
         PX = (VX3 + VX4 + VX5) * fixpenalty
@@ -84,7 +80,7 @@ class TUP(object):
         
         return self
 
-    def mutate(self, D, S, d1, d2):
+    def mutate(self, D, S, q1, q2):
         U = self.U
         fixpenalty = self.fixpenalty
 
@@ -98,8 +94,8 @@ class TUP(object):
         U[tmutation,uimutation] = U[tmutation,ujmutation]
         
         self.V3 = umps2violations3(S, U)
-        self.V4 = umps2violations4(S, U, d1)
-        self.V5 = umps2violations5(S, U, d2)
+        self.V4 = umps2violations4(S, U, q1)
+        self.V5 = umps2violations5(S, U, q2)
         self.T  = umps2travel(D, S, U)
         self.P  = (self.V3 + self.V4 + self.V5) * fixpenalty
 
@@ -125,7 +121,7 @@ class TUP(object):
     def travel(self):    
         return self.T.sum()
 
-    def persist(self,D, S, epochs, d1, d2, instancename, timestamp, ouput_dir=''):
+    def persist(self,D, S, epochs, q1, q2, instancename, timestamp, ouput_dir=''):
         if not(ouput_dir):
             output_dir = "../src/output/%s/%d/" %(instancename,timestamp)
             if not os.path.exists(output_dir):
@@ -133,11 +129,11 @@ class TUP(object):
                 
             
         df          = self.to_frame(D,S)
-        ganame      = 'ga_%s_i%04d-d1_%02d-d2_%02d.csv' % (instancename,epochs,d1,d2)
+        ganame      = 'ga_%s_i%04d-q1_%02d-q2_%02d.csv' % (instancename,epochs,q1,q2)
         filepath    = output_dir + ganame  
         df.to_csv(filepath, sep=',')
     
-    def export1(self, instancename, timestamp, ouput_dir=''):
+    def export1(self, instancename, timestamp, q1, q2, ouput_dir=''):
         # Exports to format in 
         # https://benchmark.gent.cs.kuleuven.be/tup/en/my_submissions/
         if not(ouput_dir):
@@ -147,8 +143,6 @@ class TUP(object):
 
         U               = self.U
         nrounds, numps     =U.shape 
-        q1              = numps
-        q2              = int(numps/2)        
         exportname      = '%s_%d_%d.txt' % (instancename,q1,q2)        
         filepath        = output_dir + exportname 
         G               = umpire2game(self.U)
@@ -157,7 +151,7 @@ class TUP(object):
         exportdf        = pd.DataFrame(data=expdata.reshape((1,l)))           
         exportdf.to_csv(filepath, sep=',', header=False, index=False)                
 
-    def export2(self, S,  instancename, timestamp, ouput_dir=''):
+    def export2(self, S,  instancename, timestamp, q1, q2, ouput_dir=''):
         # Exports to format in 
         # https://benchmark.gent.cs.kuleuven.be/tup/en/my_submissions/
         if not(ouput_dir):
@@ -167,8 +161,6 @@ class TUP(object):
         
         U = self.U
         _, numps=U.shape 
-        q1 = numps
-        q2 = int(numps/2)
         exportname      = '%s_%d_%d.txt' % (instancename,q1, q2)        
         filepath        = output_dir + exportname 
         exportdata      = umps2home(S, U)        

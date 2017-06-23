@@ -10,7 +10,7 @@ import copy
 
 gl_fittest = None 
 
-def ga_initialpopulation(npopulation, D, S, d1, d2, fixpenalty, order=False):
+def ga_initialpopulation(npopulation, D, S, q1, q2, fixpenalty, order=False):
   population = []
   i = 0 
   
@@ -20,7 +20,7 @@ def ga_initialpopulation(npopulation, D, S, d1, d2, fixpenalty, order=False):
           buff = msg %  (i,npopulation)
           print buff
           
-      sol = TUP(D,S,d1,d2,fixpenalty)
+      sol = TUP(D,S,q1,q2,fixpenalty)
       
       population.append(sol)
       
@@ -29,7 +29,7 @@ def ga_initialpopulation(npopulation, D, S, d1, d2, fixpenalty, order=False):
   print msg % (npopulation,npopulation)
   return  population     
 
-def ga_crossover(D, S, d1, d2, population, replaceperc=0.15):
+def ga_crossover(D, S, q1, q2, population, replaceperc=0.15):
   ncrossover = int(len(population)/2)
   nreplace   = int(len(population) * replaceperc)
         
@@ -41,7 +41,7 @@ def ga_crossover(D, S, d1, d2, population, replaceperc=0.15):
       solx    = copy.deepcopy(parents[0])  
       solcopy = parents[1] 
           
-      solx.x(solcopy, D, S, d1, d2)
+      solx.x(solcopy, D, S, q1, q2)
 
       exists =  ga_exists(newgeneration,solx) | ga_exists(population,solx) 
       if not exists:  
@@ -60,13 +60,13 @@ def ga_crossover(D, S, d1, d2, population, replaceperc=0.15):
 
   return population
 
-def ga_mutation(D, S, d1, d2, population, parentid, nreplace, nmutation):
+def ga_mutation(D, S, q1, q2, population, parentid, nreplace, nmutation):
   # population, parentid, nreplace, nmutation
   mutationid = np.random.choice(parentid[:nreplace],size=nmutation,replace=False)
   populationid = np.array(map(id,population))
   indexes = np.in1d(populationid, mutationid,assume_unique=True)
   for i in indexes:
-    population[i].mutate(D, S, d1, d2)    
+    population[i].mutate(D, S, q1, q2)    
 
   population, populationid = ga_rank(population, populationid)
   
