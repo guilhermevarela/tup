@@ -37,7 +37,7 @@ class TUP(object):
         self.V4 = umps2violations4(S, U, d1)
         self.V5 = umps2violations5(S, U, d2)
         self.T = umps2travel(D, S, U)
-        self.P = self.T * fixpenalty
+        self.P = (self.V3 + self.V4 + self.V5) * fixpenalty
         self.fixpenalty = fixpenalty
 
     def x(self, tup, D, S, d1, d2):
