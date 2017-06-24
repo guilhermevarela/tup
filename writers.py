@@ -15,7 +15,8 @@ def persist_benchmark(experimentid, timestamp, benchmark_dict, ouput_dir=''):
 
 	'''	
 	if not(ouput_dir):
-		output_dir = "./output/benchmarks/%s/" %(timestamp)
+		output_dir = get_path("/output/benchmarks/%s/" %(timestamp))
+		# output_dir = "./output/benchmarks/%s/" %(timestamp)
  		if not os.path.exists(output_dir):
 			os.makedirs(output_dir)
 
@@ -32,8 +33,9 @@ def persist_solution(tupdf, D, S, epochs, q1, q2, instancename, timestamp, ouput
 
 	'''	
 	if not(ouput_dir):
-		output_dir = "./output/%s/%d/" 
-		output_dir = output_dir %(instancename,timestamp)
+		output_dir = get_path("/output/%s/%d/" %(instancename,timestamp))
+		# output_dir = "./output/%s/%d/" 
+		# output_dir = output_dir %(instancename,timestamp)
 	
 	makedir(output_dir)
 
@@ -48,8 +50,9 @@ def persist_siteformat1(tupdf, instancename, timestamp, q1, q2, ouput_dir=''):
 
 	'''	
 	if not(ouput_dir):
-		output_dir = "./output/%s/%d/" 
-		output_dir = output_dir %(instancename,timestamp)
+		output_dir = get_path("/output/%s/%d/" %(instancename,timestamp))
+		# output_dir = "./output/%s/%d/" 
+		# output_dir = output_dir %(instancename,timestamp)
 
 	makedir(output_dir)	
 	
@@ -59,8 +62,9 @@ def persist_siteformat1(tupdf, instancename, timestamp, q1, q2, ouput_dir=''):
 
 def persist_siteformat2(tupdf, instancename, timestamp, q1, q2, ouput_dir=''):
 	if not(ouput_dir):
-		output_dir = "../src/output/%s/%d/" 
-		output_dir = output_dir %(instancename,timestamp)
+		output_dir = get_path("/output/%s/%d/" %(instancename,timestamp))
+		# output_dir = "../src/output/%s/%d/" 
+		# output_dir = output_dir %(instancename,timestamp)
 
 	makedir(output_dir)
 	
@@ -72,3 +76,6 @@ def makedir(output_dir):
 	if not os.path.exists(output_dir):
 		os.makedirs(output_dir)
 	return output_dir	
+
+def get_path(append_path=''):
+	return os.path.dirname(os.path.abspath(__file__)) + append_path

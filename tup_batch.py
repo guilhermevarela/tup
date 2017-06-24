@@ -3,17 +3,20 @@ Created on Jun 23, 2017
 
 @author: Varela
 '''
-import glob 
+from readers import instance_glob
 import sys 
 import ga_experiment 
+
 if __name__ == '__main__':
     pass
 if len(sys.argv) < 4:
 	print '%s expects at least 3 parameters instance_familyname, d1, d2 '%(sys.argv[0])
 else:
 	instance_familyname = sys.argv[1]
-	glob_pattern = './instances/%s*.txt' % (instance_familyname)
-	filenames =  glob.glob(glob_pattern)
+	# glob_pattern = './instances/%s*.txt' % (instance_familyname)
+	# filenames =  glob.glob(glob_pattern)
+	filenames =instance_glob(instance_familyname)
+	# print filenames
 	if filenames: 
 		print 'Found files matching pattern'
 		for name in filenames:

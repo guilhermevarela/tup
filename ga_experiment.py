@@ -19,7 +19,7 @@ def execute(familyname,filepaths, d1, d2):
   fitalpha  = 0.5
 
   tol = 5e-3
-  maxepochs = 2e2
+  maxepochs = 5e2
   stop_criteria = False
   
   timestamp = get_timestamp()

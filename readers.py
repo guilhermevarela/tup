@@ -3,8 +3,15 @@ Created on Jun 8, 2017
 
 @author: Varela
 '''
+import glob 
 import numpy as np 
 import re 
+import os
+
+def instance_glob(instance_familyname):
+    glob_path =  os.path.dirname(os.path.abspath(__file__)) 
+    glob_path +=  '/instances/%s*.txt' % (instance_familyname)     
+    return glob.glob(glob_path)
 
 def instance_reader(instancename='umps8.txt', path= ''):
     # path  = './instances/'
