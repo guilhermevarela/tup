@@ -111,6 +111,8 @@ class TUP(object):
     def travel(self):    
         return self.T.sum()
 
+    def violations(self):
+        return (self.V3 + self.V4 + self.V5).sum()     
     def persist(self,D, S, epochs, q1, q2, instancename, timestamp, ouput_dir=''):
         if not(ouput_dir):
             output_dir = "../src/output/%s/%d/" %(instancename,timestamp)

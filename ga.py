@@ -103,7 +103,7 @@ def ga_fitness(population, nbest):
   return np.array(map(lambda x : x.score(), population[:nbest])).mean()
 
 
-def ga_fittest_store(population):
+def ga_store(population):
   '''
     Stores a deepcopy  of the fittest individual
   '''
@@ -111,7 +111,7 @@ def ga_fittest_store(population):
   gl_fittest = copy.deepcopy(population[0])  
   return gl_fittest
 
-def ga_fittest_recall(population, populationid): 
+def ga_recall(population, populationid): 
   '''
     Performs replacement only if the new fitness function is less then the parent's 
   '''

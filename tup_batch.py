@@ -20,6 +20,6 @@ else:
 			print name 
 		d1 = 	int(sys.argv[2])
 		d2 = 	int(sys.argv[3])
-		ga_experiment.execute(filenames, int(sys.argv[2]), int(sys.argv[3])) 	
+		ga_experiment.execute(instance_familyname, filenames, int(sys.argv[2]), int(sys.argv[3])) 	
 	else:
 		print 'No files found matching:', instance_familyname

@@ -4,7 +4,6 @@ Created on Jun 8, 2017
 @author: Varela
 '''
 import numpy as np 
-import pandas as pd  
 import re 
 
 def instance_reader(instancename='umps8.txt', path= ''):
@@ -23,14 +22,11 @@ def instance_reader(instancename='umps8.txt', path= ''):
     oppmtrx=[]
     with open(filepath, 'r') as f: 
         for line in f:
-            print searchdist
             if searchdist:
                 matched = matcher_array(line)  
-                print matched 
                 if matched:
                     strarray = matched.group(1).split(' ')
                     strarray = [x for x in strarray if x] 
-                    print [int(x) for x in strarray]
                     distmtrx.append( [int(x) for x in strarray])                     
                 else:
                     searchdist = False  
