@@ -53,8 +53,6 @@ def ga_crossover(D, S, q1, q2, population, replaceperc=0.15):
   replacestart = len(population)-nreplace
   keepfinish   = nreplace
   
-  fitnessbefore= ga_fitness(population, nreplace)
-  
   population[replacestart:] = newgeneration[0:keepfinish]    
   population = ga_rank(population)
 
@@ -66,7 +64,10 @@ def ga_mutation(D, S, q1, q2, population, parentid, nreplace, nmutation):
   populationid = np.array(map(id,population))
   indexes = np.in1d(populationid, mutationid,assume_unique=True)
   for i in indexes:
-    population[i].mutate(D, S, q1, q2)    
+    if population[i].P.any():    
+      population[i].sa(D, S, q1, q2, 100)   
+    else: 
+      population[i].mutate(D, S, q1, q2)    
 
   population, populationid = ga_rank(population, populationid)
   

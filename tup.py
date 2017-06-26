@@ -39,6 +39,9 @@ class TUP(object):
     self.fixpenalty = fixpenalty
 
   def x(self, tup, D, S, q1, q2):
+    '''
+    Performs optimized local search using hungarian assignment 
+    '''
     nrounds, numps, _ = S.shape 
     t = np.random.randint(1,nrounds)
     fixpenalty = self.fixpenalty
@@ -90,6 +93,76 @@ class TUP(object):
     self.T  = umps2travel(D, S, U)
     self.P  = (self.V3 + self.V4 + self.V5) * fixpenalty
 
+  def sa(self, D, S, q1, q2, T0, verbose=True):
+    '''
+    Simulated annealing
+    '''
+    
+    def saperm(x, V):
+      '''
+      Applies a permutation operator the time preceding a violation and applies a random permutation
+      ''' 
+      # Finds a violated i to operate
+      nrounds, numps = x.shape
+      index  = np.arange(1, nrounds+1)
+      viol   = V.sum(axis=1).astype('bool')
+      if viol.any(): 
+        status = 0 
+        r      = np.random.choice(index[viol],size=1)-1
+
+        # Applies a full permutation operator on t
+        index  = np.arange(1,numps+1)
+        perm   = np.random.choice(index,size=numps,replace=False)
+        x[r,index-1] = perm
+      
+        V = umps2violations3(S, x) 
+        V += umps2violations4(S, x, q1)
+        V += umps2violations5(S, x, q2)        
+      else: 
+        status = 1
+
+      return x, V, status  
+
+    w = self.U       
+    Ik = 10  # repetition schedule for k
+    i = 0 
+
+    K = self.V3 + self.V4 + self.V5     
+    T0 = int(T0)
+    Tk = int(0.2*T0)
+    T = np.linspace(T0,Tk)
+
+    status  = 0 if K.any() else 1
+    if status == 0: 
+      for tk in T:
+        for i in xrange(Ik):
+          wprime, Kprime, status = saperm(w,K)      
+
+          if status == 0: # violations present 
+            delta = Kprime.sum() - K.sum()    
+            if delta <= 0:
+              w = wprime
+              K = Kprime               
+              if verbose:
+                print 'gasa improvement \ttemperature %d\tstep %d'
+            elif (np.random.rand() < np.exp(-(delta/tk))):
+              w = wprime
+              K = Kprime               
+              if verbose:
+                print 'gasa metropolis criterion \ttemperature %d\tstep %d'
+          else:
+            break 
+        if status==1:
+          break 
+
+    self.U = w
+    self.V3 = umps2violations3(S, w)
+    self.V4 = umps2violations4(S, w, q1)
+    self.V5 = umps2violations5(S, w, q2)
+    self.T  = umps2travel(D, S, w)
+    self.P  = (self.V3 + self.V4 + self.V5) * self.fixpenalty                  
+    
+      
   def to_frame(self, D, S):
     '''
         to_frame generates a pandas dataframe
@@ -127,6 +200,9 @@ class TUP(object):
     wr.persist_siteformat2(self._to_dfsite2(S), instancename, timestamp, q1, q2)
   
   
+
+
+
   def _to_dfsite1(self):        
     nrounds, numps  =self.U.shape 
     G               = umpire2game(self.U)
