@@ -62,9 +62,11 @@ def ga_mutation(D, S, q1, q2, population, parentid, nreplace, nmutation):
   # population, parentid, nreplace, nmutation
   mutationid = np.random.choice(parentid[:nreplace],size=nmutation,replace=False)
   populationid = np.array(map(id,population))
-  indexes = np.in1d(populationid, mutationid,assume_unique=True)
+  indexes = np.in1d(populationid, mutationid,assume_unique=True) # returns mask referent to booleans
+  indexes = np.where(indexes)[0]
+  
   for i in indexes:
-    if population[i].P.any():    
+    if population[i].P.any():          
       population[i].sa(D, S, q1, q2, 100)   
     else: 
       population[i].mutate(D, S, q1, q2)    

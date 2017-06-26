@@ -1,3 +1,5 @@
 *.pyc
 *.csv
 /output/*
+/scripts/*
+*.plist

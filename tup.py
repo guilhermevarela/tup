@@ -136,23 +136,30 @@ class TUP(object):
     if status == 0: 
       for tk in T:
         for i in xrange(Ik):
-          wprime, Kprime, status = saperm(w,K)      
+          wprime, Kprime, stopcriteria = saperm(w,K)      
 
-          if status == 0: # violations present 
+          if stopcriteria == 0: # violations present 
             delta = Kprime.sum() - K.sum()    
             if delta <= 0:
               w = wprime
               K = Kprime               
-              if verbose:
-                print 'gasa improvement \ttemperature %d\tstep %d'
+              # if verbose:
+              #   msg  = 'gasa improvement \ttemperature %d\tstep %d\tdelta %d'
+              #   info = (tk,i,delta)
+              #   print msg % info 
             elif (np.random.rand() < np.exp(-(delta/tk))):
               w = wprime
               K = Kprime               
-              if verbose:
-                print 'gasa metropolis criterion \ttemperature %d\tstep %d'
+              # if verbose:
+              #   msg  = 'gasa metropolis criterion \ttemperature %d\tstep %d\tdelta %d'
+              #   info = (tk,i,delta) 
+              #   print msg % info 
+                
           else:
             break 
-        if status==1:
+        if stopcriteria==1:
+          if verbose:
+            print 'Stop criteria reached exiting GASA'
           break 
 
     self.U = w

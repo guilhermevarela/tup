@@ -44,12 +44,12 @@ def execute(familyname,filepaths, d1, d2):
     record_instance(locals(),export=False)
     while not stopexperiment:
       # preserve ids of the individuals for mutations
-      ga_store(population)
+      #ga_store(population)
       population = ga_crossover(D, S, q1, q2, population, replaceperc)
 
       population, parentid = ga_mutation(D, S, q1, q2, population, parentid, nreplace, nmutate )
 
-      population, parentid = ga_recall(population, parentid)
+      #population, parentid = ga_recall(population, parentid)
       
       benchmark(locals())
       stopexperiment = eval_stopcriteria(instancename, population, tol, epochs, maxepochs)
