@@ -7,7 +7,6 @@ Created on Jun 12, 2017
 import numpy as np
 import pandas as pd  
 import writers as wr 
-import os 
 from umps import *
 import scipy.optimize as opt 
 

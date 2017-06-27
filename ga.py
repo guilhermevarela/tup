@@ -59,8 +59,9 @@ def ga_crossover(D, S, q1, q2, population, replaceperc=0.15):
   return population
 
 def ga_mutation(D, S, q1, q2, population, parentid, nreplace, nmutation):
-  # population, parentid, nreplace, nmutation
-  mutationid = np.random.choice(parentid[:nreplace],size=nmutation,replace=False)
+  # We get only the parents who are garanteed not to have been replaced
+  nparent    = int(len(population) - nreplace)  
+  mutationid = np.random.choice(parentid[:nparent],size=nmutation,replace=False)
   populationid = np.array(map(id,population))
   indexes = np.in1d(populationid, mutationid,assume_unique=True) # returns mask referent to booleans
   indexes = np.where(indexes)[0]
