@@ -10,7 +10,7 @@ gl_benchmark = {}
 def execute(familyname,filepaths, d1, d2):
   epochs = 0
   replaceperc = 0.15 
-  mutateperc  = 0.05
+  mutateperc  = 0.40
   npopulation = 500
   
 
@@ -18,7 +18,7 @@ def execute(familyname,filepaths, d1, d2):
   nmutate = int(npopulation * mutateperc)
   fitalpha  = 0.5
 
-  tol = 5e-3
+  tol = 5e-4
   maxepochs = 5e2
   stop_criteria = False
   
@@ -44,12 +44,12 @@ def execute(familyname,filepaths, d1, d2):
     record_instance(locals(),export=False)
     while not stopexperiment:
       # preserve ids of the individuals for mutations
-      #ga_store(population)
+      ga_store(population)
       population = ga_crossover(D, S, q1, q2, population, replaceperc)
 
       population, parentid = ga_mutation(D, S, q1, q2, population, parentid, nreplace, nmutate )
 
-      #population, parentid = ga_recall(population, parentid)
+      population, parentid = ga_recall(population, parentid)
       
       benchmark(locals())
       stopexperiment = eval_stopcriteria(instancename, population, tol, epochs, maxepochs)

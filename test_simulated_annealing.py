@@ -13,7 +13,7 @@ if __name__ == '__main__':
 
 
 	nrounds  = S.shape[0] 
-	numps  = int(nteams)
+	numps  = int(nteams/2)
 
 	d1 = 0 
 	d2 = 0 

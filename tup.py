@@ -9,7 +9,8 @@ import pandas as pd
 import writers as wr 
 from umps import *
 import scipy.optimize as opt 
-
+from scipy.sparse import csr_matrix 
+import networkx as nx 
 
 class TUP(object):
   '''
@@ -142,17 +143,11 @@ class TUP(object):
             if delta <= 0:
               w = wprime
               K = Kprime               
-              # if verbose:
-              #   msg  = 'gasa improvement \ttemperature %d\tstep %d\tdelta %d'
-              #   info = (tk,i,delta)
-              #   print msg % info 
+
             elif (np.random.rand() < np.exp(-(delta/tk))):
               w = wprime
               K = Kprime               
-              # if verbose:
-              #   msg  = 'gasa metropolis criterion \ttemperature %d\tstep %d\tdelta %d'
-              #   info = (tk,i,delta) 
-              #   print msg % info 
+
                 
           else:
             break 
@@ -168,7 +163,104 @@ class TUP(object):
     self.T  = umps2travel(D, S, w)
     self.P  = (self.V3 + self.V4 + self.V5) * self.fixpenalty                  
     
+  def repair(self, D, S, q1, q2, verbose=True):
+    '''
+    Applies hopcroft_karp_matching algorithm
+    '''
+    U  = self.U    
+    V4  = self.V4 
+    V5  = self.V5 
+    repairindex = (V4+V5).sum(axis=1)
+    if repairindex.any():
+      # Stores the indexes of the forbidden teams
       
+      nteams = D.shape[0]
+      numps  = int(nteams/2)
+
+      idt = np.arange(S.shape[0])
+      idt = idt[repairindex>0]
+      t = np.random.choice(idt,size=1)[0]  # has to be randomly drawn
+      
+
+      idu = np.arange(0,numps).reshape(1,numps)
+      #FORBBIDEN BY VIOLATION 4
+      F4 = np.zeros((nteams, numps))  
+      Hom = umps2home(S,U)
+      t0 = max(t-q1+1,0)
+      
+      idx = Hom[t0:t,:]-1 
+      idy = np.tile(idu, (t-t0,1))
+      
+      F4[idx, idy] = 1
+
+      #FORBBIDEN BY VIOLATION 5
+      F5 = np.zeros((nteams, numps))
+      t0 = max(t-q2+1,0)
+      idx = Hom[t0:t,:]-1 
+      idy = np.tile(idu, (t-t0,1))
+      F5[idx, idy] = 1  
+
+      Adv = umps2adversaries(S,U)
+      idx = Adv[t0:t,:]-1
+      F5[idx, idy] = 1  
+
+      
+      # CONVERTS FORBIDDEN HISTORY INTO FORBBIDEN FOR TIME T
+      idx = np.tile(Hom[t,:]-1, (numps,1)).T 
+      idy = np.tile(idu, (numps,1))
+      FT4 = F4[idx,idy]
+      
+      
+      FT5 = F5[idx,idy]
+      idx = np.tile(Adv[t,:]-1, (numps,1)).T 
+      FT5 += F5[idx,idy]
+
+      A = 1 - FT4 - FT5 
+      A[A<0] = 0 
+
+      #MAXIMUM CARDINALITY HEURISTIC 
+      K = csr_matrix(A)
+      # Game vertices are shifted by numps
+      G = nx.bipartite.from_biadjacency_matrix(K)
+      dct = nx.bipartite.hopcroft_karp_matching(G)
+
+      if verbose: 
+        nviolprev= (V4[t,:] + V5[t,:]).any().sum()
+        nviolnew = numps - int(len(dct.keys())/2)
+        print "number of violations %d -> %d" %(nviolprev, nviolnew)
+        
+
+      # Defines new allocation - filling the positions 
+      # in case no viable answer was found 
+      idg = np.zeros((numps,), dtype=np.int32)
+      masku = np.ones((numps,), dtype=bool)
+      maskg = np.ones((numps,), dtype=bool)
+
+
+      
+      for u, g in dct.items():
+        if u < numps:
+       
+          idg[u] = int(g - numps) # We have to adjust after transformation
+          masku[u] = False 
+          maskg[g-numps]= False
+      
+      idg[maskg] = U[t,masku]-1   
+
+      idu = idu.reshape((numps,))
+
+      # fills left overs in a sequential way    
+      
+      
+      
+      self.U[t,idu] = idg+1   
+      self.V3 = umps2violations3(S, self.U)
+      self.V4 = umps2violations4(S, self.U, q1)
+      self.V5 = umps2violations5(S, self.U, q2)
+      self.T  = umps2travel(D, S, self.U)
+      self.P  = (self.V3 + self.V4 + self.V5) * self.fixpenalty                  
+
+
   def to_frame(self, D, S):
     '''
         to_frame generates a pandas dataframe
