@@ -250,9 +250,6 @@ class TUP(object):
       idu = idu.reshape((numps,))
 
       # fills left overs in a sequential way    
-      
-      
-      
       self.U[t,idu] = idg+1   
       self.V3 = umps2violations3(S, self.U)
       self.V4 = umps2violations4(S, self.U, q1)
