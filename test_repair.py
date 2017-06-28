@@ -92,9 +92,10 @@ def pointwise_repair(D, S, q1, q2, tup, verbose=True):
 	
 if __name__ == '__main__':
 
-	nteams, D, S = instance_reader('umps6.txt','./instances/')
+	nteams, D, S = instance_reader('umps8.txt','./instances/')
 	S = get_schedule(S)
 
+	import code; code.interact(local=dict(globals(), **locals()))
 
 	nrounds  = S.shape[0] 
 	numps  = int(nteams/2)
