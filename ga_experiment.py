@@ -10,7 +10,7 @@ gl_benchmark = {}
 def execute(familyname,filepaths, d1, d2):
   epochs = 0
   replaceperc = 0.15 
-  mutateperc  = 0.40
+  mutateperc  = 0.05
   npopulation = 500
   
 
@@ -94,6 +94,7 @@ def record_instance(localvars,export=False):
   
   population[0].persist(D, S, epochs, q1, q2, instancename, timestamp)
   if export:
+    population[0].export1(S, instancename, timestamp, q1, q2)    
     population[0].export2(S, instancename, timestamp, q1, q2)    
 
 def record_benchmark(experimentid, timestamp):
@@ -103,6 +104,8 @@ def record_benchmark(experimentid, timestamp):
 def benchmark(localvars):
   fittest = localvars['population'][0]
   instancetimestamp = localvars['instancetimestamp']
+  q1 = localvars['q1']
+  q2 = localvars['q2']
   global gl_benchmark
 
   update = False 
@@ -121,7 +124,7 @@ def benchmark(localvars):
       [
         ('timestamp',thistimestamp), ('delta',thistimestamp-instancetimestamp),
           ('violations',fittest.violations()), ('score',fittest.score()), ('travel',fittest.travel()),
-            ('instancename', instancename)
+            ('instancename', instancename), ('q1',q1), ('q2',q2)
       ]
     )
 

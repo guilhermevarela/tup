@@ -68,8 +68,8 @@ def ga_mutation(D, S, q1, q2, population, parentid, nreplace, nmutation):
   
   for i in indexes:
     if population[i].P.any():          
-      population[i].repair(D, S, q1, q2, verbose=False)    
-    #   population[i].sa(D, S, q1, q2, 100)   
+      #population[i].repair(D, S, q1, q2, verbose=False)    
+      population[i].sa(D, S, q1, q2, 100)   
     # else: 
     #  population[i].mutate(D, S, q1, q2)    
 
