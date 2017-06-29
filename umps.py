@@ -49,14 +49,15 @@ def umps2violations4(S, U, q1):
 		umps2violations4 no umpire is in home site more then once in q1=numps-d1 periods
 
 	'''	
-	# Performs q1-1 shifts in order to compute V4
+	# Performs q1 shifts in order to compute V4
 	V4 = np.zeros(U.shape, dtype=np.int32)
 	H = umps2home(S,U)	
 	Q = H 
-	for q in xrange(1,q1):
-		Q = np.roll(Q, 1, axis=0) 
-		Q[:q,:]=-1
-		V4 += (H == Q).astype('int')
+	if q1>1:
+		for q in xrange(1,q1+1):
+			Q = np.roll(Q, 1, axis=0) 
+			Q[:q,:]=-1
+			V4 += (H == Q).astype('int')
 	return V4 	
 
 
@@ -66,20 +67,22 @@ def umps2violations5(S, U, q2):
 		umps2violations5 no umpire sees a team more then once in q2=int(numps/2)-d2 consecutive slots
 
 	'''	
-	# Performs q2-1 shifts in order to compute V5
+	# Performs q2 shifts in order to compute V5
 	V5 = np.zeros(U.shape, dtype=np.int32)
 	H = umps2home(S,U)	
 	A = umps2adversaries(S,U)	
 	QH = H
 	QA = A 
-	for q in xrange(1,q2):
-		#Compare with previous period
-		QH = np.roll(QH, 1, axis=0) 
-		QA = np.roll(QA, 1, axis=0) 
-		#Ignores first line - which was rotated
-		QH[0,:]=-1
-		QA[0,:]=-1
-		V5 += (H == QH).astype('int') + (A == QA).astype('int') 
+	if q2>1:	
+		for q in xrange(1,q2+1):
+			#Compare with previous period
+			QH = np.roll(QH, 1, axis=0) 
+			QA = np.roll(QA, 1, axis=0) 
+			#Ignores first line - which was rotated
+			QH[0,:]=-1
+			QA[0,:]=-1
+			V5 += (H == QH).astype('int') + (A == QA).astype('int') + \
+						(H == QA).astype('int') + (A == QH).astype('int') 
 
 	return V5
 
@@ -119,3 +122,30 @@ def umps2cartesian(U1, U2):
 			CP[:t,col] = U1[:,u1] 
 			CP[t:,col] = U2[:,u2] 
 	return CP
+
+def umps2games(U):
+	'''
+
+		umps2games converts an umpire matrix containing games to a games matrix containing umpires
+		
+	'''	
+
+	nrounds, numseries = U.shape
+	gameindexes = np.unique(U)
+	numgs       = len(gameindexes)
+
+	G = np.zeros(U.shape, dtype=np.int32)
+	P = np.tile(gameindexes.reshape(1,numgs), (nrounds,1))
+	
+	#import code; code.interact(local=dict(globals(),**locals()))
+	for g in gameindexes: 
+		I,J = np.where(U ==g)
+		G[:,g-1] 	= P[I,J]
+	return G	
+
+
+
+
+
+
+

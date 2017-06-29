@@ -300,9 +300,9 @@ class TUP(object):
 
   def _to_dfsite1(self):        
     nrounds, numps  =self.U.shape 
-    G               = umpire2game(self.U)
+    G               = umps2games(self.U)
     expdata         = G.flatten()
-    l = nrounds*numps
+    l               = nrounds*numps
     return pd.DataFrame(data=expdata.reshape((1,l)))           
 
   def _to_dfsite2(self, S):        

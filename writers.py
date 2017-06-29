@@ -56,7 +56,7 @@ def persist_siteformat1(tupdf, instancename, timestamp, q1, q2, ouput_dir=''):
 
 	makedir(output_dir)	
 	
-	exportname      = '%s_%d_%d.txt' % (instancename,q1,q2)        
+	exportname      = '%s_%d_%d_1.txt' % (instancename,q1,q2)        
 	filepath        = output_dir + exportname 
 	tupdf.to_csv(filepath, sep=',', header=False, index=False)                
 
@@ -68,7 +68,7 @@ def persist_siteformat2(tupdf, instancename, timestamp, q1, q2, ouput_dir=''):
 
 	makedir(output_dir)
 	
-	exportname      = '%s_%d_%d.txt' % (instancename,q1, q2)        
+	exportname      = '%s_%d_%d_2.txt' % (instancename,q1, q2)        
 	filepath        = output_dir + exportname
 	tupdf.to_csv(filepath, sep=' ', header=False, index=False, encoding='utf-8')          
 
