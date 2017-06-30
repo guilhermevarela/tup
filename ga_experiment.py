@@ -11,7 +11,7 @@ def execute(familyname,filepaths, d1, d2):
   epochs = 0
   replaceperc = 0.15 
   mutateperc  = 0.05
-  npopulation = 5000
+  npopulation = 500
   
 
   nreplace = int(npopulation * replaceperc)

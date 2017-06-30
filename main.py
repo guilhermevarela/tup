@@ -6,6 +6,8 @@ Created on Jun 8, 2017
 import numpy as np
 import pandas as pd  
 import readers as rd  
+from writers import get_path
+
 import os
 
 from utils import *
@@ -23,15 +25,15 @@ def publish_score(nfit, individualdecile, individualbest):
 if __name__ == '__main__':
     pass
 
-instancename = 'umps14'
+#instancename = 'umps14'
 # instancename = 'umps10C'
-# instancename = 'umps4'
+#instancename = 'umps4.txt'
 # instancename = 'umps12'
 # instancename = 'umps6'
 # instancename = 'umps6A'
-# instancename = 'umps8A'
+instancename = 'umps8.txt'
 
-nteams, D, opponents = rd.instance_reader(instancename)
+nteams, D, opponents = rd.instance_reader(instancename, get_path('/instances/'))
 
 S = get_schedule(opponents)
 numps = int(nteams/2)
@@ -46,7 +48,7 @@ epochs = 0
 replaceperc = 0.15 
 mutateperc  = 0.05
 npopulation = 500
-fixpenalty = 1000 * numps * numps   
+fixpenalty = 1000 * numps  
 population = ga_initialpopulation(npopulation, D, S, q1, q2, fixpenalty)
 parentid = get_populationid(population)
 timestamp = get_timestamp()
@@ -59,7 +61,7 @@ fitalpha  = 0.5
 tol = 3e-2
 maxepochs = 2e2
 stop_criteria = False
-fitmv = tol*1000
+# fitmv = tol*1000
 nreplace = int(npopulation * replaceperc)
 nmutate = int(npopulation * mutateperc)
 
@@ -68,19 +70,23 @@ publish_score(nfit, population[nfit-1], fittest)
 
 while not stop_criteria:
     # preserve ids of the individuals for mutations
-    ga_fittest_store(population)
+    #ga_fittest_store(population)
     population = ga_crossover(D, S, q1, q2, population, replaceperc)
 
     population, parentid = ga_mutation(D, S, q1, q2, population, parentid, nreplace, nmutate )
 
-    population, parentid =ga_fittest_recall(population, parentid)
+    #population, parentid =ga_fittest_recall(population, parentid)
 
     epochs +=1 
-    fitscore        = ga_fitness(population, nfit)
-    stop_criteria   = (epochs > maxepochs) | (abs(fitscore - fitmv) < tol)
-
-    publish_score(nfit, population[nfit-1], population[0])
-    fitmv = (fitalpha)*fitscore + (1-fitalpha)*fitmv
+    #fitscore        = ga_fitness(population, nfit)
+    best = population[0]
+    ref  = population[100]
+    r = (float(ref.score()-best.score())/ref.score())
+    print r        
+    stop_criteria  = ((epochs > maxepochs) | (r < tol)) 
+    
+    publish_score(20, ref, best)
+    #fitmv = (fitalpha)*fitscore + (1-fitalpha)*fitmv
     
 
 fittest =  population[0]

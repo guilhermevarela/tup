@@ -54,7 +54,7 @@ def umps2violations4(S, U, q1):
 	H = umps2home(S,U)	
 	Q = H 
 	if q1>1:
-		for q in xrange(1,q1+1):
+		for q in xrange(1,q1):
 			Q = np.roll(Q, 1, axis=0) 
 			Q[:q,:]=-1
 			V4 += (H == Q).astype('int')
@@ -74,7 +74,7 @@ def umps2violations5(S, U, q2):
 	QH = H
 	QA = A 
 	if q2>1:	
-		for q in xrange(1,q2+1):
+		for q in xrange(1,q2):
 			#Compare with previous period
 			QH = np.roll(QH, 1, axis=0) 
 			QA = np.roll(QA, 1, axis=0) 
