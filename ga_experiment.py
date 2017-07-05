@@ -1,5 +1,6 @@
 
-import readers as rd  
+#import readers as rd  
+from singletons import get_dictionary, set_dictionary
 from utils import get_populationid, get_schedule, get_timestamp
 from writers import persist_benchmark
 from ga import * 
@@ -27,16 +28,19 @@ def execute(familyname,filepaths, d1, d2):
   for instancepath in filepaths: 
     instancename = instancepath.split('/')[-1]     
     instancename = instancename.split('.')[0]     
-    nteams, D, opponents = rd.instance_reader(instancepath)
-    numps = int(nteams/2)
-    fixpenalty = 1000 * numps
-    S = get_schedule(opponents)
+    # nteams, D, opponents = rd.instance_reader(instancepath)
+    # numps = int(nteams/2)
+    # fixpenalty = 1000 * numps
+    # S = get_schedule(opponents)
+    # q1 = numps - d1 
+    # q2 = int(numps/2) - d2 
+    dct =  set_dictionary(instancepath, d1=d1, d2=d2, penalty=1000 )
 
-    q1 = numps - d1 
-    q2 = int(numps/2) - d2 
+    
 
     instancetimestamp = get_timestamp()
-    population = ga_initialpopulation(npopulation, D, S, q1, q2, fixpenalty)
+    #population = ga_initialpopulation(npopulation, D, S, q1, q2, fixpenalty)
+    population = ga_initialpopulation(npopulation)
     parentid = get_populationid(population)
 
     stopexperiment = False 
@@ -45,9 +49,11 @@ def execute(familyname,filepaths, d1, d2):
     while not stopexperiment:
       # preserve ids of the individuals for mutations
       ga_store(population)
-      population = ga_crossover(D, S, q1, q2, population, replaceperc)
+      #population = ga_crossover(D, S, q1, q2, population, replaceperc)
+      population = ga_crossover(population, replaceperc)
 
-      population, parentid = ga_mutation(D, S, q1, q2, population, parentid, nreplace, nmutate )
+      #population, parentid = ga_mutation(D, S, q1, q2, population, parentid, nreplace, nmutate )
+      population, parentid = ga_mutation(population, parentid, nreplace, nmutate )
 
       population, parentid = ga_recall(population, parentid)
       
@@ -82,11 +88,12 @@ def eval_stopcriteria(instancename, population, tol, epochs, maxepochs):
 
 
 def record_instance(localvars,export=False):
-  D = localvars['D']
-  S = localvars['S']
+  dct = get_dictionary()
+  D = dct['D']
+  S = dct['S']
   epochs =localvars['epochs']
-  q1 =localvars['q1']
-  q2 =localvars['q2']
+  q1 =dct['q1']
+  q2 =dct['q2']
   instancename =localvars['instancename']
   timestamp =localvars['timestamp']
   population = localvars['population']
@@ -102,10 +109,11 @@ def record_benchmark(experimentid, timestamp):
     persist_benchmark(experimentid, timestamp, gl_benchmark)
 
 def benchmark(localvars):
+  dct = get_dictionary()
   fittest = localvars['population'][0]
   instancetimestamp = localvars['instancetimestamp']
-  q1 = localvars['q1']
-  q2 = localvars['q2']
+  q1 = dct['q1']
+  q2 = dct['q2']
   global gl_benchmark
 
   update = False 

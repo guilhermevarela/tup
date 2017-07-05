@@ -9,11 +9,23 @@ import re
 import os
 
 def instance_glob(instance_familyname):
+    '''
+        handles instance directory reading and returning from multiple files
+        glob          : nfiles a unix glob that match instance_familyname* 
+        
+    ''' 
     glob_path =  os.path.dirname(os.path.abspath(__file__)) 
     glob_path +=  '/instances/%s*.txt' % (instance_familyname)     
     return glob.glob(glob_path)
 
 def instance_reader(instancename='umps8.txt', path= ''):
+    '''
+        handles reading of instancename as well as file parsing
+        nteams          :                   number of teams
+        distance_mtrx   : nteamsxnteams     matrix with distance between homesites
+        opponents_mtrx  : nteamsxnrounds    matrix holding the game pairings information
+
+    ''' 
     # path  = './instances/'
     filepath = path + instancename
     

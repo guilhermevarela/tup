@@ -8,6 +8,11 @@ def get_timestamp():
 	return int(timeit.time.time())
 
 def get_schedule(opponents):
+    '''
+
+        Converts the 2D opponents matrix from files to 3D schedule
+
+    ''' 
     # Converts the 2D opponents matrix from files to 3D
     nrounds, nteams = opponents.shape
     newshape = (nrounds,int(nteams/2))

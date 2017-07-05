@@ -4,13 +4,28 @@ Created on Jun 9, 2017
 @author: Varela
 '''
 from tup import TUP
+from singletons import get_dictionary 
 import numpy as np
 
 import copy
 
 gl_fittest = None 
 
-def ga_initialpopulation(npopulation, D, S, q1, q2, fixpenalty, order=False):
+#def ga_initialpopulation(npopulation, D, S, q1, q2, fixpenalty, order=False):
+def ga_initialpopulation(npopulation, order=False):
+  '''
+
+    Retuns a list[npopulation] of tuple instances
+    
+  ''' 
+  # Initialization 
+  dct  = get_dictionary() 
+  D    = dct['D']
+  S    = dct['S']
+  q1   = dct['q1']
+  q2   = dct['q2']
+  fixpenalty = dct['fixpenalty']
+
   population = []
   i = 0 
   
@@ -29,7 +44,15 @@ def ga_initialpopulation(npopulation, D, S, q1, q2, fixpenalty, order=False):
   print msg % (npopulation,npopulation)
   return  population     
 
-def ga_crossover(D, S, q1, q2, population, replaceperc=0.15):
+#def ga_crossover(D, S, q1, q2, population, replaceperc=0.15):
+def ga_crossover(population, replaceperc=0.15):
+  dct = get_dictionary()
+
+  D   = dct['D']
+  S   = dct['S']
+  q1  = dct['q1']
+  q2  = dct['q2']
+
   ncrossover = int(len(population)/2)
   nreplace   = int(len(population) * replaceperc)
         
@@ -58,7 +81,14 @@ def ga_crossover(D, S, q1, q2, population, replaceperc=0.15):
 
   return population
 
-def ga_mutation(D, S, q1, q2, population, parentid, nreplace, nmutation):
+#def ga_mutation(D, S, q1, q2, population, parentid, nreplace, nmutation):
+def ga_mutation(population, parentid, nreplace, nmutation):
+  dct = get_dictionary()
+
+  D   = dct['D']
+  S   = dct['S']
+  q1  = dct['q1']
+  q2  = dct['q2']
   # We get only the parents who are garanteed not to have been replaced
   nparent    = int(len(population) - nreplace)  
   mutationid = np.random.choice(parentid[:nparent],size=nmutation,replace=False)
