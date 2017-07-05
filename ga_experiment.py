@@ -98,7 +98,7 @@ def record_instance(localvars,export=False):
     population[0].export2(S, instancename, timestamp, q1, q2)    
 
 def record_benchmark(experimentid, timestamp):
-    dct = get_dictionary()
+    dct = get_dictionary()    
     #import code; code.interact(local=dict(globals(), **locals()))
     persist_benchmark(experimentid, timestamp, dct[experimentid])
 
@@ -111,13 +111,18 @@ def benchmark(localvars):
   q2 = dct['q2']
 
   update = False 
+
   if dct.has_key(experimentid):
+    #import code; code.interact(local=dict(globals(), **locals()))
     benchdct = dct[experimentid]      
     if benchdct.has_key(instancetimestamp):
       #update only if best has improved
       prevscore = benchdct[instancetimestamp]['score']
       if prevscore >  fittest.score():
         update = True       
+    else:
+      update = True       
+      
   else:        
     benchdct = {} 
     update = True 
@@ -125,7 +130,7 @@ def benchmark(localvars):
   if update:  
     thistimestamp = get_timestamp()
     instancename = localvars['instancename']
-    benchdct[instancename] = dict(
+    benchdct[instancetimestamp] = dict(
       [('timestamp',thistimestamp), ('delta',thistimestamp-instancetimestamp),
         ('violations',fittest.violations()), ('score',fittest.score()), ('travel',fittest.travel()),
           ('instancename', instancename), ('q1',q1), ('q2',q2)]
