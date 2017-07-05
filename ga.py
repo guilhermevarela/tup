@@ -35,7 +35,7 @@ def ga_initialpopulation(npopulation, order=False):
           buff = msg %  (i,npopulation)
           print buff
           
-      sol = TUP(D,S,q1,q2,fixpenalty)
+      sol = TUP(D,S,q1,q2,fixpenalty)      
       
       population.append(sol)
       

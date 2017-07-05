@@ -11,13 +11,23 @@ from umps import *
 import scipy.optimize as opt 
 from scipy.sparse import csr_matrix 
 import networkx as nx 
+from singletons import get_dictionary 
+
 
 class TUP(object):
   '''
   TUP solution
   '''
   def __init__(self, D, S, q1, q2, fixpenalty):
-    #Defines variables 
+  #def __init__(self):
+    #Initialize 
+    # dct = get_dictionary()
+    # D  = dct['D']
+    # S  = dct['S']
+    # q1 = dct['q1'] 
+    # q2 = dct['q2'] 
+    # fixpenalty = dct['fixpenalty'] 
+
     nrounds, numps, _ = S.shape 
 
     U  = np.zeros((nrounds,numps),dtype=np.int32)                        
@@ -46,12 +56,12 @@ class TUP(object):
     t = np.random.randint(1,nrounds)
     fixpenalty = self.fixpenalty
     # UX is the cartesian product
-    UX = umps2cartesian(self.U[:t,:], tup.U[t:,:])
+    UX  = umps2cartesian(self.U[:t,:], tup.U[t:,:])
     VX3 = umps2violations3(S, UX)
     VX4 = umps2violations4(S, UX, q1)
     VX5 = umps2violations5(S, UX, q2)
-    TX = umps2travel(D, S, UX)
-    PX = (VX3 + VX4 + VX5) * fixpenalty
+    TX  = umps2travel(D, S, UX)
+    PX  = (VX3 + VX4 + VX5) * fixpenalty
 
     # COMPUTES TXt, PXt for cut
     TXt = TX[t,:].reshape((numps,numps))

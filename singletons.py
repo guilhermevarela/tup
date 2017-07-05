@@ -33,7 +33,8 @@ def set_dictionary(instancename, **kwargs):
 	numps = int(nteams/2)
 	ngames = numps
 	S = get_schedule(O)
-	dctnry.update({'D': D, 'S': S, 'nteams': nteams, 'numps': numps, 'ngames': ngames })
+	nrounds = S.shape[0]
+	dctnry.update({'D': D, 'S': S, 'nteams': nteams, 'numps': numps, 'ngames': ngames, 'nrounds': nrounds})
 	if kwargs:
 		dctnry.update(kwargs)
 		

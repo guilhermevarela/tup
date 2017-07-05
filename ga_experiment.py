@@ -28,20 +28,14 @@ def execute(familyname,filepaths, d1, d2):
   for instancepath in filepaths: 
     instancename = instancepath.split('/')[-1]     
     instancename = instancename.split('.')[0]     
-    # nteams, D, opponents = rd.instance_reader(instancepath)
-    # numps = int(nteams/2)
-    # fixpenalty = 1000 * numps
-    # S = get_schedule(opponents)
-    # q1 = numps - d1 
-    # q2 = int(numps/2) - d2 
+    
     dct =  set_dictionary(instancepath, d1=d1, d2=d2, penalty=1000 )
 
     
 
     instancetimestamp = get_timestamp()
-    #population = ga_initialpopulation(npopulation, D, S, q1, q2, fixpenalty)
-    population = ga_initialpopulation(npopulation)
-    parentid = get_populationid(population)
+    population        = ga_initialpopulation(npopulation)
+    parentid          = get_populationid(population)
 
     stopexperiment = False 
     epochs = 0
@@ -49,10 +43,9 @@ def execute(familyname,filepaths, d1, d2):
     while not stopexperiment:
       # preserve ids of the individuals for mutations
       ga_store(population)
-      #population = ga_crossover(D, S, q1, q2, population, replaceperc)
+      
       population = ga_crossover(population, replaceperc)
-
-      #population, parentid = ga_mutation(D, S, q1, q2, population, parentid, nreplace, nmutate )
+      
       population, parentid = ga_mutation(population, parentid, nreplace, nmutate )
 
       population, parentid = ga_recall(population, parentid)
@@ -105,49 +98,42 @@ def record_instance(localvars,export=False):
     population[0].export2(S, instancename, timestamp, q1, q2)    
 
 def record_benchmark(experimentid, timestamp):
-    #global gl_benchmark 
-    #persist_benchmark(experimentid, timestamp, gl_benchmark)
     dct = get_dictionary()
+    #import code; code.interact(local=dict(globals(), **locals()))
     persist_benchmark(experimentid, timestamp, dct[experimentid])
 
 def benchmark(localvars):
   dct = get_dictionary()
   fittest = localvars['population'][0]
   instancetimestamp = localvars['instancetimestamp']
+  experimentid = localvars['experimentid']
   q1 = dct['q1']
   q2 = dct['q2']
-  #global gl_benchmark
 
   update = False 
-  if dct.has_key(instancetimestamp):
-    #update only if best has improved
-    prevscore = dct[instancetimestamp]['score']
-    if prevscore >  fittest.score():
-      update = True 
-  else:
-      update = True 
+  if dct.has_key(experimentid):
+    benchdct = dct[experimentid]      
+    if benchdct.has_key(instancetimestamp):
+      #update only if best has improved
+      prevscore = benchdct[instancetimestamp]['score']
+      if prevscore >  fittest.score():
+        update = True       
+  else:        
+    benchdct = {} 
+    update = True 
 
   if update:  
     thistimestamp = get_timestamp()
     instancename = localvars['instancename']
+    benchdct[instancename] = dict(
+      [('timestamp',thistimestamp), ('delta',thistimestamp-instancetimestamp),
+        ('violations',fittest.violations()), ('score',fittest.score()), ('travel',fittest.travel()),
+          ('instancename', instancename), ('q1',q1), ('q2',q2)]
+    )
+    kwargs = dict([(experimentid,benchdct)])
 
-    #import code; code.interact(local=dict(globals(), **locals()))
-    dictionary_publish(**
-      dict([(
-        instancename, 
-        dict([('timestamp',thistimestamp), ('delta',thistimestamp-instancetimestamp),
-              ('violations',fittest.violations()), ('score',fittest.score()), ('travel',fittest.travel()),
-                ('instancename', instancename), ('q1',q1), ('q2',q2)]
-        )
-      )])
-    ) 
-    # gl_benchmark[instancetimestamp] = dict(
-    #   [
-    #     ('timestamp',thistimestamp), ('delta',thistimestamp-instancetimestamp),
-    #       ('violations',fittest.violations()), ('score',fittest.score()), ('travel',fittest.travel()),
-    #         ('instancename', instancename), ('q1',q1), ('q2',q2)
-    #   ]
-    # )
+    dictionary_publish(**kwargs) 
+    
 
 def publish(instancename, epochs, individualdecile, individualbest):    
     scoredecile = "{:,}".format(int(individualdecile.score()))
