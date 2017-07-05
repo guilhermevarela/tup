@@ -1,6 +1,6 @@
 
 #import readers as rd  
-from singletons import get_dictionary, set_dictionary
+from singletons import get_dictionary, set_dictionary, dictionary_publish 
 from utils import get_populationid, get_schedule, get_timestamp
 from writers import persist_benchmark
 from ga import * 
@@ -105,8 +105,10 @@ def record_instance(localvars,export=False):
     population[0].export2(S, instancename, timestamp, q1, q2)    
 
 def record_benchmark(experimentid, timestamp):
-    global gl_benchmark 
-    persist_benchmark(experimentid, timestamp, gl_benchmark)
+    #global gl_benchmark 
+    #persist_benchmark(experimentid, timestamp, gl_benchmark)
+    dct = get_dictionary()
+    persist_benchmark(experimentid, timestamp, dct[experimentid])
 
 def benchmark(localvars):
   dct = get_dictionary()
@@ -114,12 +116,12 @@ def benchmark(localvars):
   instancetimestamp = localvars['instancetimestamp']
   q1 = dct['q1']
   q2 = dct['q2']
-  global gl_benchmark
+  #global gl_benchmark
 
   update = False 
-  if gl_benchmark.has_key(instancetimestamp):
+  if dct.has_key(instancetimestamp):
     #update only if best has improved
-    prevscore = gl_benchmark[instancetimestamp]['score']
+    prevscore = dct[instancetimestamp]['score']
     if prevscore >  fittest.score():
       update = True 
   else:
@@ -128,13 +130,24 @@ def benchmark(localvars):
   if update:  
     thistimestamp = get_timestamp()
     instancename = localvars['instancename']
-    gl_benchmark[instancetimestamp] = dict(
-      [
-        ('timestamp',thistimestamp), ('delta',thistimestamp-instancetimestamp),
-          ('violations',fittest.violations()), ('score',fittest.score()), ('travel',fittest.travel()),
-            ('instancename', instancename), ('q1',q1), ('q2',q2)
-      ]
-    )
+
+    #import code; code.interact(local=dict(globals(), **locals()))
+    dictionary_publish(**
+      dict([(
+        instancename, 
+        dict([('timestamp',thistimestamp), ('delta',thistimestamp-instancetimestamp),
+              ('violations',fittest.violations()), ('score',fittest.score()), ('travel',fittest.travel()),
+                ('instancename', instancename), ('q1',q1), ('q2',q2)]
+        )
+      )])
+    ) 
+    # gl_benchmark[instancetimestamp] = dict(
+    #   [
+    #     ('timestamp',thistimestamp), ('delta',thistimestamp-instancetimestamp),
+    #       ('violations',fittest.violations()), ('score',fittest.score()), ('travel',fittest.travel()),
+    #         ('instancename', instancename), ('q1',q1), ('q2',q2)
+    #   ]
+    # )
 
 def publish(instancename, epochs, individualdecile, individualbest):    
     scoredecile = "{:,}".format(int(individualdecile.score()))
