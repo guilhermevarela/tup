@@ -10,7 +10,8 @@ def get_timestamp():
 def get_schedule(opponents):
     '''
 
-        Converts the 2D opponents matrix from files to 3D schedule
+        Converts the 2D opponents matrix from files to 3D matrix schedule
+        S nroundsxnumpsx2
 
     ''' 
     # Converts the 2D opponents matrix from files to 3D
@@ -32,3 +33,20 @@ def get_schedule(opponents):
     S[:,:,0]     = H 
     S[:,:,1]     = V 
     return S	
+
+def get_homegames(S):
+    '''
+        Converts S matrix into a dictionary where:
+        keys    .: are the home venues 
+        values  .: are numpy array of indexes containing the pos=(rows,cols) in S 
+                   where team k played at home
+
+    ''' 
+    H = S[:,:,0]
+    teams = np.unique(S.flatten())
+    dict_homegames = {} 
+    for t in teams:        
+        I,J = np.where(H == teams[t-1])
+        dict_homegames[t] = (I,J) 
+
+    return dict_homegames

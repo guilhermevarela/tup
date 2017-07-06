@@ -11,14 +11,14 @@ from umps import *
 import scipy.optimize as opt 
 from scipy.sparse import csr_matrix 
 import networkx as nx 
-from singletons import get_dictionary 
+#from singletons import get_dictionary 
 
 
 class TUP(object):
   '''
   TUP solution
   '''
-  def __init__(self, D, S, q1, q2, fixpenalty):
+  def __init__(self, D, S, q1, q2, fixpenalty, homegames):
   #def __init__(self):
     #Initialize 
     # dct = get_dictionary()
@@ -39,7 +39,7 @@ class TUP(object):
 
     self.U = U    
     
-    self.V3 = umps2violations3(S, U)
+    self.V3 = umps2violations3(S, U, homegames, place='first')
     self.V4 = umps2violations4(S, U, q1)
     self.V5 = umps2violations5(S, U, q2)        
     
@@ -48,7 +48,7 @@ class TUP(object):
     self.P = (self.V3 + self.V4 + self.V5) * fixpenalty
     self.fixpenalty = fixpenalty
 
-  def x(self, tup, D, S, q1, q2):
+  def x(self, tup, D, S, q1, q2, homegames):
     '''
     Performs optimized local search using hungarian assignment 
     '''
@@ -57,7 +57,7 @@ class TUP(object):
     fixpenalty = self.fixpenalty
     # UX is the cartesian product
     UX  = umps2cartesian(self.U[:t,:], tup.U[t:,:])
-    VX3 = umps2violations3(S, UX)
+    VX3 = umps2violations3(S, UX, homegames, place='first')
     VX4 = umps2violations4(S, UX, q1)
     VX5 = umps2violations5(S, UX, q2)
     TX  = umps2travel(D, S, UX)
@@ -84,7 +84,7 @@ class TUP(object):
     
     return self
 
-  def mutate(self, D, S, q1, q2):
+  def mutate(self, D, S, q1, q2, homegames):
     U = self.U
     fixpenalty = self.fixpenalty
 
@@ -97,7 +97,7 @@ class TUP(object):
     
     U[tmutation,uimutation] = U[tmutation,ujmutation]
     
-    self.V3 = umps2violations3(S, U)
+    self.V3 = umps2violations3(S, U, homegames, 'first')
     self.V4 = umps2violations4(S, U, q1)
     self.V5 = umps2violations5(S, U, q2)
     self.T  = umps2travel(D, S, U)

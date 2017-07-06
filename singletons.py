@@ -8,7 +8,7 @@ Defined by instances and running parameters
 '''
 
 from readers import instance_reader
-from utils import get_schedule 
+from utils import get_schedule, get_homegames 
 gl_dict = {}
 
 
@@ -37,21 +37,34 @@ def set_dictionary(instancename, **kwargs):
 	dctnry.update({'D': D, 'S': S, 'nteams': nteams, 'numps': numps, 'ngames': ngames, 'nrounds': nrounds})
 	if kwargs:
 		dctnry.update(kwargs)
-		
-		if kwargs.has_key('d1'):
-			dctnry['q1'] = numps - kwargs['d1']
-		
-		if kwargs.has_key('d2'):
-			dctnry['q2'] = int(numps/2) - kwargs['d2']
-		
-		if kwargs.has_key('penalty'):			
-			dctnry['fixpenalty'] = numps*kwargs['penalty']
 
+	_params_transform_()
 	return dctnry
 
 def dictionary_publish(**kwargs):
 	dctnry = get_dictionary() 
 	dctnry.update(kwargs)
 	return dctnry	
+
+
+def _params_transform_():
+	'''
+
+		Adds / updates parameters based on new instance 
+		
+	'''	
+	dct = get_dictionary()
+
+	if dct.has_key('d1'):
+		dct['q1'] = dct['numps'] - dct['d1']
+		
+	if dct.has_key('d2'):
+		dct['q2'] = int(dct['numps']/2) - dct['d2']
+		
+	if dct.has_key('penalty'):			
+		dct['fixpenalty'] = dct['numps']*dct['penalty']	
+	
+	if dct.has_key('S'):			
+		dct['homegames'] = get_homegames(dct['S'])
 
 

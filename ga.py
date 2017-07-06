@@ -25,6 +25,7 @@ def ga_initialpopulation(npopulation, order=False):
   q1   = dct['q1']
   q2   = dct['q2']
   fixpenalty = dct['fixpenalty']
+  homegames = dct['homegames']
 
   population = []
   i = 0 
@@ -35,7 +36,7 @@ def ga_initialpopulation(npopulation, order=False):
           buff = msg %  (i,npopulation)
           print buff
           
-      sol = TUP(D,S,q1,q2,fixpenalty)      
+      sol = TUP(D,S,q1,q2,fixpenalty,homegames)      
       
       population.append(sol)
       
@@ -52,6 +53,7 @@ def ga_crossover(population, replaceperc=0.15):
   S   = dct['S']
   q1  = dct['q1']
   q2  = dct['q2']
+  homegames = dct['homegames']
 
   ncrossover = int(len(population)/2)
   nreplace   = int(len(population) * replaceperc)
@@ -64,7 +66,7 @@ def ga_crossover(population, replaceperc=0.15):
       solx    = copy.deepcopy(parents[0])  
       solcopy = parents[1] 
           
-      solx.x(solcopy, D, S, q1, q2)
+      solx.x(solcopy, D, S, q1, q2, homegames)
 
       exists =  ga_exists(newgeneration,solx) | ga_exists(population,solx) 
       if not exists:  
@@ -89,6 +91,7 @@ def ga_mutation(population, parentid, nreplace, nmutation):
   S   = dct['S']
   q1  = dct['q1']
   q2  = dct['q2']
+  homegames= dct['homegames']
   # We get only the parents who are garanteed not to have been replaced
   nparent    = int(len(population) - nreplace)  
   mutationid = np.random.choice(parentid[:nparent],size=nmutation,replace=False)
@@ -101,7 +104,7 @@ def ga_mutation(population, parentid, nreplace, nmutation):
       #population[i].repair(D, S, q1, q2, verbose=False)    
     #  population[i].sa(D, S, q1, q2, 100)   
     # else: 
-    population[i].mutate(D, S, q1, q2)    
+    population[i].mutate(D, S, q1, q2, homegames)    
 
 
   population, populationid = ga_rank(population, populationid)
