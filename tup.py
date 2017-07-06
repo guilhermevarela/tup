@@ -39,7 +39,7 @@ class TUP(object):
 
     self.U = U    
     
-    self.V3 = umps2violations3(S, U, homegames, place='first')
+    self.V3 = umps2violations3(S, U, homegames, placement='any')
     self.V4 = umps2violations4(S, U, q1)
     self.V5 = umps2violations5(S, U, q2)        
     
@@ -57,7 +57,7 @@ class TUP(object):
     fixpenalty = self.fixpenalty
     # UX is the cartesian product
     UX  = umps2cartesian(self.U[:t,:], tup.U[t:,:])
-    VX3 = umps2violations3(S, UX, homegames, place='first')
+    VX3 = umps2violations3(S, UX, homegames, placement='any')
     VX4 = umps2violations4(S, UX, q1)
     VX5 = umps2violations5(S, UX, q2)
     TX  = umps2travel(D, S, UX)
@@ -97,7 +97,7 @@ class TUP(object):
     
     U[tmutation,uimutation] = U[tmutation,ujmutation]
     
-    self.V3 = umps2violations3(S, U, homegames, 'first')
+    self.V3 = umps2violations3(S, U, homegames, placement='any')
     self.V4 = umps2violations4(S, U, q1)
     self.V5 = umps2violations5(S, U, q2)
     self.T  = umps2travel(D, S, U)

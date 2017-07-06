@@ -29,7 +29,7 @@ def umps2adversaries(S, U):
 	cols = U-1
 	return A[rows,cols]
 
-def umps2violations3(S, U, homegames=[], place='last'):
+def umps2violations3(S, U, homegames=[], placement='last'):
 	'''
 		umps2violations3 every umpire sees a team at least once at home
 		S 					.: nroundsxnumpsx2 Schedule matrix
@@ -38,14 +38,17 @@ def umps2violations3(S, U, homegames=[], place='last'):
 									keys    .: are the home venues 
         					values  .: are the positions represented by a tuple  containing numpy array of indexes 
         										the pos=(rows,cols) in S  where team k played at home rows, cols are numpy arrays
-
+	  placement   .: Controls which game is responsible for the violation the 3 possibilities are:
+	  							first .: places the violation on the first home game
+	  							last 	.: places the violation on the last  home game
+	  							any 	.: places the violation on the any   home game
 	'''	
 	#Parse optional parameters
 	if not(homegames):
 		homegames = get_homegames(S)
 
-	if not( place in ['first', 'last', 'choice'] ):
-		raise Exception('umps2violations3: only values "first", "last", "choice" accepted')	
+	if not( placement in ['first', 'last', 'any'] ):
+		raise Exception('umps2violations3: only values "first", "last", "any" accepted')	
 
 	H = umps2home(S, U)		
 	nteams = np.amax(H)
@@ -57,15 +60,16 @@ def umps2violations3(S, U, homegames=[], place='last'):
 		teamsunvisited = set(teams) - set(teamsvisited)
 		#For each unvisited team
 		for t in teamsunvisited:
-			# import code; code.interact(local=dict(globals(),**locals()))
-
+			
 			I,_ = homegames[t]
-			if place in ['last']:
-				V3[I[-1],h] = 1
-			elif place in ['first']:
-				V3[I[0],h] = 1				
+			if placement in ['last']:
+				i = I[-1]
+			elif placement in ['first']:
+				i = I[0]				
 			else: 
-				raise Exception('umps2violations3: value "choice" not implemented')		
+				i = np.random.choice(I,size=1,replace=False)
+
+			V3[i,h] = 1				
 
 	return V3 		
 
