@@ -100,12 +100,11 @@ def ga_mutation(population, parentid, nreplace, nmutation):
   indexes = np.where(indexes)[0]
   
   for i in indexes:
-    #if population[i].P.any():          
-      #population[i].repair(D, S, q1, q2, verbose=False)    
+    #if population[i].P.any():              
     #  population[i].sa(D, S, q1, q2, 100)   
     # else: 
-    population[i].mutate(D, S, q1, q2, homegames)    
-
+    #population[i].mutate(D, S, q1, q2, homegames)    
+    population[i].fix(D, S, q1, q2, homegames, verbose=True)    
 
   population, populationid = ga_rank(population, populationid)
   

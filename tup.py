@@ -19,14 +19,6 @@ class TUP(object):
   TUP solution
   '''
   def __init__(self, D, S, q1, q2, fixpenalty, homegames):
-  #def __init__(self):
-    #Initialize 
-    # dct = get_dictionary()
-    # D  = dct['D']
-    # S  = dct['S']
-    # q1 = dct['q1'] 
-    # q2 = dct['q2'] 
-    # fixpenalty = dct['fixpenalty'] 
 
     nrounds, numps, _ = S.shape 
 
@@ -39,7 +31,7 @@ class TUP(object):
 
     self.U = U    
     
-    self.V3 = umps2violations3(S, U, homegames, placement='any')
+    self.V3 = umps2violations3(S, U, homegames, placement='last')
     self.V4 = umps2violations4(S, U, q1)
     self.V5 = umps2violations5(S, U, q2)        
     
@@ -57,7 +49,7 @@ class TUP(object):
     fixpenalty = self.fixpenalty
     # UX is the cartesian product
     UX  = umps2cartesian(self.U[:t,:], tup.U[t:,:])
-    VX3 = umps2violations3(S, UX, homegames, placement='any')
+    VX3 = umps2violations3(S, UX, homegames, placement='last')
     VX4 = umps2violations4(S, UX, q1)
     VX5 = umps2violations5(S, UX, q2)
     TX  = umps2travel(D, S, UX)
@@ -97,7 +89,7 @@ class TUP(object):
     
     U[tmutation,uimutation] = U[tmutation,ujmutation]
     
-    self.V3 = umps2violations3(S, U, homegames, placement='any')
+    self.V3 = umps2violations3(S, U, homegames, placement='last')
     self.V4 = umps2violations4(S, U, q1)
     self.V5 = umps2violations5(S, U, q2)
     self.T  = umps2travel(D, S, U)
@@ -125,7 +117,7 @@ class TUP(object):
         perm   = np.random.choice(index,size=numps,replace=False)
         x[r,index-1] = perm
       
-        V = umps2violations3(S, x) 
+        V  = umps2violations3(S, x) 
         V += umps2violations4(S, x, q1)
         V += umps2violations5(S, x, q2)        
       else: 
@@ -173,101 +165,49 @@ class TUP(object):
     self.T  = umps2travel(D, S, w)
     self.P  = (self.V3 + self.V4 + self.V5) * self.fixpenalty                  
     
-  def repair(self, D, S, q1, q2, verbose=True):
+  def fix(self, D, S, q1, q2, homegames, verbose=True):
     '''
     Applies hopcroft_karp_matching algorithm
     '''
-    U  = self.U    
+    U   = self.U    
+    V3  = self.V3 
     V4  = self.V4 
     V5  = self.V5 
     repairindex = (V4+V5).sum(axis=1)
     if repairindex.any():
       # Stores the indexes of the forbidden teams
-      
-      nteams = D.shape[0]
-      numps  = int(nteams/2)
-
       idt = np.arange(S.shape[0])
       idt = idt[repairindex>0]
       t = np.random.choice(idt,size=1)[0]  # has to be randomly drawn
       
-
-      idu = np.arange(0,numps).reshape(1,numps)
-      #FORBBIDEN BY VIOLATION 4
-      F4 = np.zeros((nteams, numps))  
-      Hom = umps2home(S,U)
-      t0 = max(t-q1+1,0)
       
-      idx = Hom[t0:t,:]-1 
-      idy = np.tile(idu, (t-t0,1))
-      
-      F4[idx, idy] = 1
+      prevviolations = (V3 + V4 + V5).sum()
 
-      #FORBBIDEN BY VIOLATION 5
-      F5 = np.zeros((nteams, numps))
-      t0 = max(t-q2+1,0)
-      idx = Hom[t0:t,:]-1 
-      idy = np.tile(idu, (t-t0,1))
-      F5[idx, idy] = 1  
+      idu, idg = fix(D, S, q1, q2, U, t) 
 
-      Adv = umps2adversaries(S,U)
-      idx = Adv[t0:t,:]-1
-      F5[idx, idy] = 1  
+      Uprime = U
+      Uprime[t,idu] = idg+1   
+      V3prime  = umps2violations3(S, Uprime, homegames)
+      V4prime  = umps2violations4(S, Uprime, q1)
+      V5prime  = umps2violations5(S, Uprime, q2)
+
+      actviolations = (V3prime + V4prime + V5prime).sum()
 
       
-      # CONVERTS FORBIDDEN HISTORY INTO FORBBIDEN FOR TIME T
-      idx = np.tile(Hom[t,:]-1, (numps,1)).T 
-      idy = np.tile(idu, (numps,1))
-      FT4 = F4[idx,idy]
-      
-      
-      FT5 = F5[idx,idy]
-      idx = np.tile(Adv[t,:]-1, (numps,1)).T 
-      FT5 += F5[idx,idy]
 
-      A = 1 - FT4 - FT5 
-      A[A<0] = 0 
+      if actviolations  <  prevviolations:
+        if verbose:
+          print 'mutation fix:\t violations improvement \t %d -> %d' %(prevviolations,actviolations)
 
-      #MAXIMUM CARDINALITY HEURISTIC 
-      K = csr_matrix(A)
-      # Game vertices are shifted by numps
-      G = nx.bipartite.from_biadjacency_matrix(K)
-      dct = nx.bipartite.hopcroft_karp_matching(G)
-
-      if verbose: 
-        nviolprev= (V4[t,:] + V5[t,:]).any().sum()
-        nviolnew = numps - int(len(dct.keys())/2)
-        print "number of violations %d -> %d" %(nviolprev, nviolnew)
+        self.U = Uprime 
+        self.V3 = V3prime
+        self.V4 = V4prime
+        self.V5 = V5prime
+        self.T  = umps2travel(D, S, Uprime)
+        self.P  = (V3prime + V4prime + V5prime) * self.fixpenalty                  
+      else:
+        print 'mutation fix:\t discarted violations \t %d -> %d' %(prevviolations,actviolations)
         
-
-      # Defines new allocation - filling the positions 
-      # in case no viable answer was found 
-      idg = np.zeros((numps,), dtype=np.int32)
-      masku = np.ones((numps,), dtype=bool)
-      maskg = np.ones((numps,), dtype=bool)
-
-
-      
-      for u, g in dct.items():
-        if u < numps:
-       
-          idg[u] = int(g - numps) # We have to adjust after transformation
-          masku[u] = False 
-          maskg[g-numps]= False
-      
-      idg[maskg] = U[t,masku]-1   
-
-      idu = idu.reshape((numps,))
-
-      # fills left overs in a sequential way    
-      self.U[t,idu] = idg+1   
-      self.V3 = umps2violations3(S, self.U)
-      self.V4 = umps2violations4(S, self.U, q1)
-      self.V5 = umps2violations5(S, self.U, q2)
-      self.T  = umps2travel(D, S, self.U)
-      self.P  = (self.V3 + self.V4 + self.V5) * self.fixpenalty                  
-
-
   def to_frame(self, D, S):
     '''
         to_frame generates a pandas dataframe
@@ -304,9 +244,6 @@ class TUP(object):
   def export2(self, S,  instancename, timestamp, q1, q2):    
     wr.persist_siteformat2(self._to_dfsite2(S), instancename, timestamp, q1, q2)
   
-  
-
-
 
   def _to_dfsite1(self):        
     nrounds, numps  =self.U.shape 
@@ -355,3 +292,88 @@ class TUP(object):
     
     return pd.DataFrame(data=T,columns=tcolumns,index=index)        
 
+
+def fix(D, S, q1, q2, U, t):
+  '''    
+    Applies maximum cardinality (hopcroft_karp_matching) algorithm at time t in order
+    to find a viable solution
+    
+  '''
+  # Pre computes useful variables 
+  nteams = D.shape[0]
+  numps  = int(nteams/2)
+  H      = umps2home(S,U)
+  Adv    = umps2adversaries(S,U)
+  idu    = np.arange(0,numps).reshape(1,numps)
+  #teams  = np.arange(1,nteams+1)
+      
+  #FORBIDDEN BY VIOLATION 3 
+  #For each umpire with a violation 3 @ t finds the game that improves it
+  #Save to remove   - are those that are revising 
+  #Unsafe to remove - are those that visit only one time    
+  # F3 = np.zeros((nteams, numps))
+  # for u, v3 in enumerate(V3[t,:]):
+  #   if v3 > 0:
+  #     idxv = np.array(set(teams)-set(H[:,u])) 
+  #     F3[:,u] =1
+  #     F3[idxv,u]=0
+
+  #FORBIDDEN BY VIOLATION 4
+  F4 = np.zeros((nteams, numps))      
+  t0 = max(t-q1+1,0)
+  
+  idx = H[t0:t,:]-1 
+  idy = np.tile(idu, (t-t0,1))
+  F4[idx, idy] = 1
+
+  #FORBIDDEN BY VIOLATION 5
+  F5 = np.zeros((nteams, numps))
+  t0 = max(t-q2+1,0)
+  idx = H[t0:t,:]-1 
+  idy = np.tile(idu, (t-t0,1))
+  F5[idx, idy] = 1  
+
+  
+  idx = Adv[t0:t,:]-1
+  F5[idx, idy] = 1  
+
+  
+  # CONVERTS FORBIDDEN HISTORY INTO FORBIDDEN FOR TIME T
+  idx = np.tile(H[t,:]-1, (numps,1)).T 
+  idy = np.tile(idu, (numps,1))
+  FT4 = F4[idx,idy]
+  
+  
+  FT5 = F5[idx,idy]
+  idx = np.tile(Adv[t,:]-1, (numps,1)).T 
+  FT5 += F5[idx,idy]
+
+  A = 1 - FT4 - FT5 
+  A[A<0] = 0 
+
+  #MAXIMUM CARDINALITY HEURISTIC 
+  K = csr_matrix(A)
+  # Game vertices are shifted by numps
+  G = nx.bipartite.from_biadjacency_matrix(K)
+  dct = nx.bipartite.hopcroft_karp_matching(G)
+
+
+  # Defines new allocation - filling the positions in case no viable answer was found 
+  idg = np.zeros((numps,), dtype=np.int32)
+  masku = np.ones((numps,), dtype=bool)
+  maskg = np.ones((numps,), dtype=bool)
+
+
+  
+  for u, g in dct.items():
+    if u < numps:
+   
+      idg[u] = int(g - numps) # We have to adjust after transformation
+      masku[u] = False 
+      maskg[g-numps]= False
+  
+  idg[maskg] = U[t,masku]-1   
+
+  idu = idu.reshape((numps,))
+
+  return idu, idg 
